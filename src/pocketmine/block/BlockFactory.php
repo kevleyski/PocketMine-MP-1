@@ -25,7 +25,6 @@ namespace pocketmine\block;
 
 use pocketmine\item\Item;
 use pocketmine\level\Position;
-use pocketmine\utils\MainLogger;
 
 /**
  * Manages block registration and instance creation
@@ -436,6 +435,11 @@ class BlockFactory{
 	 * @return int
 	 */
 	public static function toStaticRuntimeId(int $id, int $meta = 0) : int{
+		/*
+		 * try id+meta first
+		 * if not found, try id+0 (strip meta)
+		 * if still not found, return update! block
+		 */
 		return self::$staticRuntimeIdMap[($id << 4) | $meta] ?? self::$staticRuntimeIdMap[$id << 4] ?? self::$staticRuntimeIdMap[BlockIds::INFO_UPDATE << 4];
 	}
 

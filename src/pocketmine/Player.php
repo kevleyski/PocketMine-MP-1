@@ -1484,14 +1484,11 @@ class Player extends Human implements CommandSender, ChunkLoader, IPlayer{
 	}
 
 	protected function checkGroundState(float $movX, float $movY, float $movZ, float $dx, float $dy, float $dz) : void{
-		if(!$this->onGround or $movY != 0){
-			$bb = clone $this->boundingBox;
-			$bb->minY = $this->y - 0.2;
-			$bb->maxY = $this->y + 0.2;
+		$bb = clone $this->boundingBox;
+		$bb->minY = $this->y - 0.2;
+		$bb->maxY = $this->y + 0.2;
 
-			$this->onGround = count($this->level->getCollisionBlocks($bb, true)) > 0;
-		}
-		$this->isCollided = $this->onGround;
+		$this->onGround = $this->isCollided = count($this->level->getCollisionBlocks($bb, true)) > 0;
 	}
 
 	public function canBeMovedByCurrents() : bool{
@@ -2162,7 +2159,7 @@ class Player extends Human implements CommandSender, ChunkLoader, IPlayer{
 			return false;
 		}
 
-		$this->resetCraftingGridType();
+		$this->doCloseInventory();
 
 		$message = TextFormat::clean($message, $this->removeFormat);
 		foreach(explode("\n", $message) as $messagePart){
@@ -2237,7 +2234,7 @@ class Player extends Human implements CommandSender, ChunkLoader, IPlayer{
 		if(!$this->spawned or !$this->isAlive()){
 			return true;
 		}
-		$this->resetCraftingGridType();
+		$this->doCloseInventory();
 
 		switch($packet->event){
 			case ActorEventPacket::EATING_ITEM:
@@ -2388,7 +2385,7 @@ class Player extends Human implements CommandSender, ChunkLoader, IPlayer{
 
 						return true;
 					case InventoryTransactionPacket::USE_ITEM_ACTION_BREAK_BLOCK:
-						$this->resetCraftingGridType();
+						$this->doCloseInventory();
 
 						$item = $this->inventory->getItemInHand();
 						$oldItem = clone $item;
@@ -2629,7 +2626,7 @@ class Player extends Human implements CommandSender, ChunkLoader, IPlayer{
 			return true;
 		}
 
-		$this->resetCraftingGridType();
+		$this->doCloseInventory();
 
 		$target = $this->level->getEntity($packet->target);
 		if($target === null){
@@ -2843,7 +2840,7 @@ class Player extends Human implements CommandSender, ChunkLoader, IPlayer{
 			return true;
 		}
 
-		$this->resetCraftingGridType();
+		$this->doCloseInventory();
 
 		if(isset($this->windowIndex[$packet->windowId])){
 			$this->server->getPluginManager()->callEvent(new InventoryCloseEvent($this->windowIndex[$packet->windowId], $this));
@@ -2893,7 +2890,7 @@ class Player extends Human implements CommandSender, ChunkLoader, IPlayer{
 		if(!$this->spawned or !$this->isAlive()){
 			return true;
 		}
-		$this->resetCraftingGridType();
+		$this->doCloseInventory();
 
 		$pos = new Vector3($packet->x, $packet->y, $packet->z);
 		if($pos->distanceSquared($this) > 10000 or $this->level->checkSpawnProtection($this, $pos)){
@@ -3611,7 +3608,7 @@ class Player extends Human implements CommandSender, ChunkLoader, IPlayer{
 
 		//Crafting grid must always be evacuated even if keep-inventory is true. This dumps the contents into the
 		//main inventory and drops the rest on the ground.
-		$this->resetCraftingGridType();
+		$this->doCloseInventory();
 
 		$this->server->getPluginManager()->callEvent($ev = new PlayerDeathEvent($this, $this->getDrops(), new TranslationContainer($message, $params)));
 
@@ -3794,15 +3791,19 @@ class Player extends Human implements CommandSender, ChunkLoader, IPlayer{
 		$this->craftingGrid = $grid;
 	}
 
-	public function resetCraftingGridType() : void{
-		$contents = $this->craftingGrid->getContents();
-		if(count($contents) > 0){
-			$drops = $this->inventory->addItem(...$contents);
-			foreach($drops as $drop){
-				$this->dropItem($drop);
-			}
+	public function doCloseInventory() : void{
+		/** @var Inventory[] $inventories */
+		$inventories = [$this->craftingGrid, $this->cursorInventory];
+		foreach($inventories as $inventory){
+			$contents = $inventory->getContents();
+			if(count($contents) > 0){
+				$drops = $this->inventory->addItem(...$contents);
+				foreach($drops as $drop){
+					$this->dropItem($drop);
+				}
 
-			$this->craftingGrid->clearAll();
+				$inventory->clearAll();
+			}
 		}
 
 		if($this->craftingGrid->getGridWidth() > CraftingGrid::SIZE_SMALL){

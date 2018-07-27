@@ -169,7 +169,7 @@ abstract class Entity extends Location implements Metadatable, EntityIds{
 	public const DATA_LIMITED_LIFE = 77;
 	public const DATA_ARMOR_STAND_POSE_INDEX = 78; //int
 	public const DATA_ENDER_CRYSTAL_TIME_OFFSET = 79; //int
-	/* 80 (byte) something to do with nametag visibility? */
+	public const DATA_ALWAYS_SHOW_NAMETAG = 80; //byte: -1 = default, 0 = only when looked at, 1 = always
 	public const DATA_COLOR_2 = 81; //byte
 	/* 82 (unknown) */
 	public const DATA_SCORE_TAG = 83; //string
@@ -228,7 +228,7 @@ abstract class Entity extends Location implements Metadatable, EntityIds{
 	public const DATA_FLAG_FIRE_IMMUNE = 48;
 	public const DATA_FLAG_DANCING = 49;
 	public const DATA_FLAG_ENCHANTED = 50;
-	//51 is something to do with tridents
+	public const DATA_FLAG_SHOW_TRIDENT_ROPE = 51; // tridents show an animated rope when enchanted with loyalty after they are thrown and return to their owner. To be combined with DATA_OWNER_EID
 	public const DATA_FLAG_CONTAINER_PRIVATE = 52; //inventory is private, doesn't drop contents when killed if true
 	//53 TransformationComponent
 	public const DATA_FLAG_SPIN_ATTACK = 54;
@@ -606,7 +606,7 @@ abstract class Entity extends Location implements Metadatable, EntityIds{
 	 * @param bool $value
 	 */
 	public function setNameTagAlwaysVisible(bool $value = true) : void{
-		$this->setGenericFlag(self::DATA_FLAG_ALWAYS_SHOW_NAMETAG, $value);
+		$this->propertyManager->setByte(self::DATA_ALWAYS_SHOW_NAMETAG, $value ? 1 : 0);
 	}
 
 	/**
@@ -1353,7 +1353,6 @@ abstract class Entity extends Location implements Metadatable, EntityIds{
 
 		if($this->hasMovementUpdate()){
 			$this->tryChangeMovement();
-			$this->move($this->motion->x, $this->motion->y, $this->motion->z);
 
 			if(abs($this->motion->x) <= self::MOTION_THRESHOLD){
 				$this->motion->x = 0;
@@ -1363,6 +1362,10 @@ abstract class Entity extends Location implements Metadatable, EntityIds{
 			}
 			if(abs($this->motion->z) <= self::MOTION_THRESHOLD){
 				$this->motion->z = 0;
+			}
+
+			if($this->motion->x != 0 or $this->motion->y != 0 or $this->motion->z != 0){
+				$this->move($this->motion->x, $this->motion->y, $this->motion->z);
 			}
 
 			$this->forceMovementUpdate = false;

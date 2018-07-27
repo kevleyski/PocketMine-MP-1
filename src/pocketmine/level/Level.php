@@ -1627,7 +1627,7 @@ class Level implements ChunkManager, Metadatable{
 
 			$spawnLocation = $this->getSpawnLocation();
 			$s = new Vector2($spawnLocation->x, $spawnLocation->z);
-			if(count($this->server->getOps()->getAll()) > 0 and $t->distance($s) <= $distance){
+			if($t->distance($s) <= $distance){
 				return true;
 			}
 		}
@@ -2791,7 +2791,7 @@ class Level implements ChunkManager, Metadatable{
 		$chunk = $this->getChunk($v->x >> 4, $v->z >> 4, false);
 		$x = (int) $v->x;
 		$z = (int) $v->z;
-		if($chunk !== null){
+		if($chunk !== null and $chunk->isGenerated()){
 			$y = (int) min($max - 2, $v->y);
 			$wasAir = ($chunk->getBlockId($x & 0x0f, $y - 1, $z & 0x0f) === 0);
 			for(; $y > 0; --$y){
@@ -2947,16 +2947,14 @@ class Level implements ChunkManager, Metadatable{
 			}
 
 			if($populate){
-				if(!isset($this->chunkPopulationQueue[$index])){
-					$this->chunkPopulationQueue[$index] = true;
-					for($xx = -1; $xx <= 1; ++$xx){
-						for($zz = -1; $zz <= 1; ++$zz){
-							$this->chunkPopulationLock[Level::chunkHash($x + $xx, $z + $zz)] = true;
-						}
+				$this->chunkPopulationQueue[$index] = true;
+				for($xx = -1; $xx <= 1; ++$xx){
+					for($zz = -1; $zz <= 1; ++$zz){
+						$this->chunkPopulationLock[Level::chunkHash($x + $xx, $z + $zz)] = true;
 					}
-					$task = new PopulationTask($this, $chunk);
-					$this->server->getAsyncPool()->submitTask($task);
 				}
+				$task = new PopulationTask($this, $chunk);
+				$this->server->getAsyncPool()->submitTask($task);
 			}
 
 			Timings::$populationTimer->stopTiming();
