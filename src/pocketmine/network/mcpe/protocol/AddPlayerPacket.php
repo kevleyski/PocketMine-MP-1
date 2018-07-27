@@ -75,6 +75,9 @@ class AddPlayerPacket extends DataPacket{
 	/** @var EntityLink[] */
 	public $links = [];
 
+	/** @var string */
+	public $string1 = "";
+
 	protected function decodePayload(){
 		$this->uuid = $this->getUUID();
 		$this->username = $this->getString();
@@ -103,6 +106,8 @@ class AddPlayerPacket extends DataPacket{
 		for($i = 0; $i < $linkCount; ++$i){
 			$this->links[$i] = $this->getEntityLink();
 		}
+
+		$this->string1 = $this->getString();
 	}
 
 	protected function encodePayload(){
@@ -133,6 +138,8 @@ class AddPlayerPacket extends DataPacket{
 		foreach($this->links as $link){
 			$this->putEntityLink($link);
 		}
+
+		$this->putString($this->string1);
 	}
 
 	public function handle(NetworkSession $session) : bool{
