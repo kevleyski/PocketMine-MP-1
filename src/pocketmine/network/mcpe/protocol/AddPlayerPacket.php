@@ -76,7 +76,7 @@ class AddPlayerPacket extends DataPacket{
 	public $links = [];
 
 	/** @var string */
-	public $string1 = "";
+	public $deviceId = ""; //TODO: fill player's device ID (???)
 
 	protected function decodePayload(){
 		$this->uuid = $this->getUUID();
@@ -107,7 +107,7 @@ class AddPlayerPacket extends DataPacket{
 			$this->links[$i] = $this->getEntityLink();
 		}
 
-		$this->string1 = $this->getString();
+		$this->deviceId = $this->getString();
 	}
 
 	protected function encodePayload(){
@@ -139,7 +139,7 @@ class AddPlayerPacket extends DataPacket{
 			$this->putEntityLink($link);
 		}
 
-		$this->putString($this->string1);
+		$this->putString($this->deviceId);
 	}
 
 	public function handle(NetworkSession $session) : bool{

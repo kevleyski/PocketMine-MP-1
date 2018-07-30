@@ -130,7 +130,7 @@ class StartGamePacket extends DataPacket{
 	/** @var int */
 	public $enchantmentSeed = 0;
 	/** @var string */
-	public $string1 = "";
+	public $multiplayerCorrelationId = ""; //TODO: this should be filled with a UUID of some sort
 
 	protected function decodePayload(){
 		$this->entityUniqueId = $this->getEntityUniqueId();
@@ -188,7 +188,7 @@ class StartGamePacket extends DataPacket{
 			$this->getLShort();
 		}
 
-		$this->string1 = $this->getString();
+		$this->multiplayerCorrelationId = $this->getString();
 	}
 
 	protected function encodePayload(){
@@ -254,7 +254,7 @@ class StartGamePacket extends DataPacket{
 		}
 		$this->put(self::$runtimeIdTable);
 
-		$this->putString($this->string1);
+		$this->putString($this->multiplayerCorrelationId);
 	}
 
 	public function handle(NetworkSession $session) : bool{
