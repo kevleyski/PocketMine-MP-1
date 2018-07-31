@@ -25,27 +25,39 @@ namespace pocketmine\network\mcpe\protocol;
 
 #include <rules/DataPacket.h>
 
-
 use pocketmine\network\mcpe\handler\SessionHandler;
 
-class TakeItemEntityPacket extends DataPacket{
-	public const NETWORK_ID = ProtocolInfo::TAKE_ITEM_ENTITY_PACKET;
+class AddHangingActorPacket extends DataPacket{
+	public const NETWORK_ID = ProtocolInfo::ADD_HANGING_ACTOR_PACKET;
 
+	/** @var int|null */
+	public $entityUniqueId = null;
 	/** @var int */
-	public $target;
+	public $entityRuntimeId;
 	/** @var int */
-	public $eid;
+	public $x;
+	/** @var int */
+	public $y;
+	/** @var int */
+	public $z;
+	/** @var int */
+	public $direction;
 
 	protected function decodePayload() : void{
-
+		$this->entityUniqueId = $this->getEntityUniqueId();
+		$this->entityRuntimeId = $this->getEntityRuntimeId();
+		$this->getBlockPosition($this->x, $this->y, $this->z);
+		$this->direction = $this->getVarInt();
 	}
 
 	protected function encodePayload() : void{
-		$this->putEntityRuntimeId($this->target);
-		$this->putEntityRuntimeId($this->eid);
+		$this->putEntityUniqueId($this->entityUniqueId ?? $this->entityRuntimeId);
+		$this->putEntityRuntimeId($this->entityRuntimeId);
+		$this->putBlockPosition($this->x, $this->y, $this->z);
+		$this->putVarInt($this->direction);
 	}
 
 	public function handle(SessionHandler $handler) : bool{
-		return $handler->handleTakeItemEntity($this);
+		return $handler->handleAddHangingActor($this);
 	}
 }

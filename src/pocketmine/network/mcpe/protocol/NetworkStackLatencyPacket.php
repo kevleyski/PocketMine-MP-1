@@ -25,24 +25,23 @@ namespace pocketmine\network\mcpe\protocol;
 
 #include <rules/DataPacket.h>
 
-
 use pocketmine\network\mcpe\handler\SessionHandler;
 
-class RemoveEntityPacket extends DataPacket{
-	public const NETWORK_ID = ProtocolInfo::REMOVE_ENTITY_PACKET;
+class NetworkStackLatencyPacket extends DataPacket{
+	public const NETWORK_ID = ProtocolInfo::NETWORK_STACK_LATENCY_PACKET;
 
 	/** @var int */
-	public $entityUniqueId;
+	public $timestamp;
 
 	protected function decodePayload() : void{
-		$this->entityUniqueId = $this->getEntityUniqueId();
+		$this->timestamp = $this->getLLong();
 	}
 
 	protected function encodePayload() : void{
-		$this->putEntityUniqueId($this->entityUniqueId);
+		$this->putLLong($this->timestamp);
 	}
 
 	public function handle(SessionHandler $handler) : bool{
-		return $handler->handleRemoveEntity($this);
+		return $handler->handleNetworkStackLatency($this);
 	}
 }

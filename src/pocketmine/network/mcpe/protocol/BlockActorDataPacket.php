@@ -25,11 +25,10 @@ namespace pocketmine\network\mcpe\protocol;
 
 #include <rules/DataPacket.h>
 
-
 use pocketmine\network\mcpe\handler\SessionHandler;
 
-class BlockEntityDataPacket extends DataPacket{
-	public const NETWORK_ID = ProtocolInfo::BLOCK_ENTITY_DATA_PACKET;
+class BlockActorDataPacket extends DataPacket{
+	public const NETWORK_ID = ProtocolInfo::BLOCK_ACTOR_DATA_PACKET;
 
 	/** @var int */
 	public $x;
@@ -51,6 +50,6 @@ class BlockEntityDataPacket extends DataPacket{
 	}
 
 	public function handle(SessionHandler $handler) : bool{
-		return $handler->handleBlockEntityData($this);
+		return $handler->handleBlockActorData($this);
 	}
 }

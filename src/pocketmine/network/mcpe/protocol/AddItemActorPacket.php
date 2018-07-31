@@ -29,8 +29,8 @@ use pocketmine\item\Item;
 use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\handler\SessionHandler;
 
-class AddItemEntityPacket extends DataPacket{
-	public const NETWORK_ID = ProtocolInfo::ADD_ITEM_ENTITY_PACKET;
+class AddItemActorPacket extends DataPacket{
+	public const NETWORK_ID = ProtocolInfo::ADD_ITEM_ACTOR_PACKET;
 
 	/** @var int|null */
 	public $entityUniqueId = null; //TODO
@@ -68,6 +68,6 @@ class AddItemEntityPacket extends DataPacket{
 	}
 
 	public function handle(SessionHandler $handler) : bool{
-		return $handler->handleAddItemEntity($this);
+		return $handler->handleAddItemActor($this);
 	}
 }

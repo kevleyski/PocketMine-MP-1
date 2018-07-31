@@ -28,8 +28,8 @@ namespace pocketmine\network\mcpe\protocol;
 
 use pocketmine\network\mcpe\handler\SessionHandler;
 
-class SetEntityDataPacket extends DataPacket{
-	public const NETWORK_ID = ProtocolInfo::SET_ENTITY_DATA_PACKET;
+class SetActorDataPacket extends DataPacket{
+	public const NETWORK_ID = ProtocolInfo::SET_ACTOR_DATA_PACKET;
 
 	/** @var int */
 	public $entityRuntimeId;
@@ -47,6 +47,6 @@ class SetEntityDataPacket extends DataPacket{
 	}
 
 	public function handle(SessionHandler $handler) : bool{
-		return $handler->handleSetEntityData($this);
+		return $handler->handleSetActorData($this);
 	}
 }

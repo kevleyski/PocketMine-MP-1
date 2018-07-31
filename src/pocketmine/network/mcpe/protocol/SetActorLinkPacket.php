@@ -27,24 +27,23 @@ namespace pocketmine\network\mcpe\protocol;
 
 
 use pocketmine\network\mcpe\handler\SessionHandler;
+use pocketmine\network\mcpe\protocol\types\EntityLink;
 
-class AddPaintingPacket extends AddHangingActorPacket{
-	public const NETWORK_ID = ProtocolInfo::ADD_PAINTING_PACKET;
+class SetActorLinkPacket extends DataPacket{
+	public const NETWORK_ID = ProtocolInfo::SET_ACTOR_LINK_PACKET;
 
-	/** @var string */
-	public $title;
+	/** @var EntityLink */
+	public $link;
 
 	protected function decodePayload() : void{
-		parent::decodePayload();
-		$this->title = $this->getString();
+		$this->link = $this->getEntityLink();
 	}
 
 	protected function encodePayload() : void{
-		parent::encodePayload();
-		$this->putString($this->title);
+		$this->putEntityLink($this->link);
 	}
 
 	public function handle(SessionHandler $handler) : bool{
-		return $handler->handleAddPainting($this);
+		return $handler->handleSetActorLink($this);
 	}
 }

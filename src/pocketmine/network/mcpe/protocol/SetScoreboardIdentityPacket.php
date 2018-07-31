@@ -26,26 +26,44 @@ namespace pocketmine\network\mcpe\protocol;
 #include <rules/DataPacket.h>
 
 use pocketmine\network\mcpe\handler\SessionHandler;
+use pocketmine\network\mcpe\protocol\types\ScoreboardIdentityPacketEntry;
 
-class EntityPickRequestPacket extends DataPacket{
-	public const NETWORK_ID = ProtocolInfo::ENTITY_PICK_REQUEST_PACKET;
+class SetScoreboardIdentityPacket extends DataPacket{
+	public const NETWORK_ID = ProtocolInfo::SET_SCOREBOARD_IDENTITY_PACKET;
+
+	public const TYPE_REGISTER_IDENTITY = 0;
+	public const TYPE_CLEAR_IDENTITY = 1;
 
 	/** @var int */
-	public $entityUniqueId;
-	/** @var int */
-	public $hotbarSlot;
+	public $type;
+	/** @var ScoreboardIdentityPacketEntry[] */
+	public $entries = [];
 
 	protected function decodePayload() : void{
-		$this->entityUniqueId = $this->getLLong();
-		$this->hotbarSlot = $this->getByte();
+		$this->type = $this->getByte();
+		for($i = 0, $count = $this->getUnsignedVarInt(); $i < $count; ++$i){
+			$entry = new ScoreboardIdentityPacketEntry();
+			$entry->scoreboardId = $this->getVarLong();
+			if($this->type === self::TYPE_REGISTER_IDENTITY){
+				$entry->uuid = $this->getUUID();
+			}
+
+			$this->entries[] = $entry;
+		}
 	}
 
 	protected function encodePayload() : void{
-		$this->putLLong($this->entityUniqueId);
-		$this->putByte($this->hotbarSlot);
+		$this->putByte($this->type);
+		$this->putUnsignedVarInt(count($this->entries));
+		foreach($this->entries as $entry){
+			$this->putVarLong($entry->scoreboardId);
+			if($this->type === self::TYPE_REGISTER_IDENTITY){
+				$this->putUUID($entry->uuid);
+			}
+		}
 	}
 
 	public function handle(SessionHandler $handler) : bool{
-		return $handler->handleEntityPickRequest($this);
+		return $handler->handleSetScoreboardIdentity($this);
 	}
 }

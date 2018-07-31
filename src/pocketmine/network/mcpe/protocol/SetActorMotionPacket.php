@@ -26,24 +26,28 @@ namespace pocketmine\network\mcpe\protocol;
 #include <rules/DataPacket.h>
 
 
+use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\handler\SessionHandler;
-use pocketmine\network\mcpe\protocol\types\EntityLink;
 
-class SetEntityLinkPacket extends DataPacket{
-	public const NETWORK_ID = ProtocolInfo::SET_ENTITY_LINK_PACKET;
+class SetActorMotionPacket extends DataPacket{
+	public const NETWORK_ID = ProtocolInfo::SET_ACTOR_MOTION_PACKET;
 
-	/** @var EntityLink */
-	public $link;
+	/** @var int */
+	public $entityRuntimeId;
+	/** @var Vector3 */
+	public $motion;
 
 	protected function decodePayload() : void{
-		$this->link = $this->getEntityLink();
+		$this->entityRuntimeId = $this->getEntityRuntimeId();
+		$this->motion = $this->getVector3();
 	}
 
 	protected function encodePayload() : void{
-		$this->putEntityLink($this->link);
+		$this->putEntityRuntimeId($this->entityRuntimeId);
+		$this->putVector3($this->motion);
 	}
 
 	public function handle(SessionHandler $handler) : bool{
-		return $handler->handleSetEntityLink($this);
+		return $handler->handleSetActorMotion($this);
 	}
 }
