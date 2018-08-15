@@ -29,7 +29,7 @@ use pocketmine\math\Vector3;
 use pocketmine\Player;
 use pocketmine\utils\Random;
 
-class Sapling extends Flowable{
+class Sapling extends Flowable implements RandomTickable{
 	public const OAK = 0;
 	public const SPRUCE = 1;
 	public const BIRCH = 2;
@@ -83,10 +83,6 @@ class Sapling extends Flowable{
 		if($this->getSide(Vector3::SIDE_DOWN)->isTransparent()){
 			$this->getLevel()->useBreakOn($this);
 		}
-	}
-
-	public function ticksRandomly() : bool{
-		return true;
 	}
 
 	public function onRandomTick() : void{

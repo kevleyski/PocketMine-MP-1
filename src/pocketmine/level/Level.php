@@ -28,6 +28,7 @@ namespace pocketmine\level;
 
 use pocketmine\block\Block;
 use pocketmine\block\BlockFactory;
+use pocketmine\block\RandomTickable;
 use pocketmine\entity\Entity;
 use pocketmine\entity\object\ExperienceOrb;
 use pocketmine\entity\object\ItemEntity;
@@ -228,7 +229,7 @@ class Level implements ChunkManager, Metadatable{
 	private $chunksPerTick;
 	/** @var bool */
 	private $clearChunksOnTick;
-	/** @var \SplFixedArray<Block> */
+	/** @var \SplFixedArray|Block[]|RandomTickable[] */
 	private $randomTickBlocks = null;
 
 	/** @var LevelTimings */
@@ -353,7 +354,7 @@ class Level implements ChunkManager, Metadatable{
 		$this->randomTickBlocks = new \SplFixedArray(256);
 		foreach($this->randomTickBlocks as $id => $null){
 			$block = BlockFactory::get($id); //Make sure it's a copy
-			if(!isset($dontTickBlocks[$id]) and $block->ticksRandomly()){
+			if(!isset($dontTickBlocks[$id]) and $block instanceof RandomTickable){
 				$this->randomTickBlocks[$id] = $block;
 			}
 		}
@@ -998,7 +999,7 @@ class Level implements ChunkManager, Metadatable{
 
 						$blockId = $subChunk->getBlockId($x, $y, $z);
 						if($this->randomTickBlocks[$blockId] !== null){
-							/** @var Block $block */
+							/** @var Block|RandomTickable $block */
 							$block = clone $this->randomTickBlocks[$blockId];
 							$block->setDamage($subChunk->getBlockData($x, $y, $z));
 

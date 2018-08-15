@@ -27,7 +27,7 @@ use pocketmine\item\enchantment\Enchantment;
 use pocketmine\item\Item;
 use pocketmine\Player;
 
-class Ice extends Transparent{
+class Ice extends Transparent implements RandomTickable{
 
 	protected $id = self::ICE;
 
@@ -60,10 +60,6 @@ class Ice extends Transparent{
 			return $this->getLevel()->setBlock($this, BlockFactory::get(Block::WATER), true);
 		}
 		return parent::onBreak($item, $player);
-	}
-
-	public function ticksRandomly() : bool{
-		return true;
 	}
 
 	public function onRandomTick() : void{

@@ -33,7 +33,7 @@ use pocketmine\item\Item;
 use pocketmine\math\Vector3;
 use pocketmine\Server;
 
-class Fire extends Flowable{
+class Fire extends Flowable implements RandomTickable{
 
 	protected $id = self::FIRE;
 
@@ -85,10 +85,6 @@ class Fire extends Flowable{
 		}else{
 			$this->level->scheduleDelayedBlockUpdate($this, mt_rand(30, 40));
 		}
-	}
-
-	public function ticksRandomly() : bool{
-		return true;
 	}
 
 	public function onRandomTick() : void{

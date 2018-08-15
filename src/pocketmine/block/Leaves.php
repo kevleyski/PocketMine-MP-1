@@ -29,7 +29,7 @@ use pocketmine\item\ItemFactory;
 use pocketmine\math\Vector3;
 use pocketmine\Player;
 
-class Leaves extends Transparent{
+class Leaves extends Transparent implements RandomTickable{
 	public const OAK = 0;
 	public const SPRUCE = 1;
 	public const BIRCH = 2;
@@ -136,10 +136,6 @@ class Leaves extends Transparent{
 			$this->meta |= 0x08;
 			$this->getLevel()->setBlock($this, $this, true, false);
 		}
-	}
-
-	public function ticksRandomly() : bool{
-		return true;
 	}
 
 	public function onRandomTick() : void{

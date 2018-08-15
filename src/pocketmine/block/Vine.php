@@ -29,7 +29,7 @@ use pocketmine\math\AxisAlignedBB;
 use pocketmine\math\Vector3;
 use pocketmine\Player;
 
-class Vine extends Flowable{
+class Vine extends Flowable implements RandomTickable{
 	public const FLAG_SOUTH = 0x01;
 	public const FLAG_WEST = 0x02;
 	public const FLAG_NORTH = 0x04;
@@ -172,10 +172,6 @@ class Vine extends Flowable{
 				$this->level->setBlock($this, $this);
 			}
 		}
-	}
-
-	public function ticksRandomly() : bool{
-		return true;
 	}
 
 	public function onRandomTick() : void{

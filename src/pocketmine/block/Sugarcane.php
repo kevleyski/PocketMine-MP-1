@@ -29,7 +29,7 @@ use pocketmine\math\Vector3;
 use pocketmine\Player;
 use pocketmine\Server;
 
-class Sugarcane extends Flowable{
+class Sugarcane extends Flowable implements RandomTickable{
 
 	protected $id = self::SUGARCANE_BLOCK;
 
@@ -73,10 +73,6 @@ class Sugarcane extends Flowable{
 		if($down->isTransparent() and $down->getId() !== self::SUGARCANE_BLOCK){
 			$this->getLevel()->useBreakOn($this);
 		}
-	}
-
-	public function ticksRandomly() : bool{
-		return true;
 	}
 
 	public function onRandomTick() : void{

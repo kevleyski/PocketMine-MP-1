@@ -33,7 +33,7 @@ use pocketmine\math\Vector3;
 use pocketmine\Player;
 use pocketmine\utils\Random;
 
-class Grass extends Solid{
+class Grass extends Solid implements RandomTickable{
 
 	protected $id = self::GRASS;
 
@@ -57,10 +57,6 @@ class Grass extends Solid{
 		return [
 			ItemFactory::get(Item::DIRT)
 		];
-	}
-
-	public function ticksRandomly() : bool{
-		return true;
 	}
 
 	public function onRandomTick() : void{

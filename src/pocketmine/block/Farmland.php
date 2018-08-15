@@ -28,7 +28,7 @@ use pocketmine\item\ItemFactory;
 use pocketmine\math\AxisAlignedBB;
 use pocketmine\math\Vector3;
 
-class Farmland extends Transparent{
+class Farmland extends Transparent implements RandomTickable{
 
 	protected $id = self::FARMLAND;
 
@@ -56,10 +56,6 @@ class Farmland extends Transparent{
 		if($this->getSide(Vector3::SIDE_UP)->isSolid()){
 			$this->level->setBlock($this, BlockFactory::get(Block::DIRT), true);
 		}
-	}
-
-	public function ticksRandomly() : bool{
-		return true;
 	}
 
 	public function onRandomTick() : void{

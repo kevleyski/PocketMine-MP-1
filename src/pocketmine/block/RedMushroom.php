@@ -39,10 +39,6 @@ class RedMushroom extends Flowable{
 		return "Red Mushroom";
 	}
 
-	public function ticksRandomly() : bool{
-		return true;
-	}
-
 	public function onNearbyBlockChange() : void{
 		if($this->getSide(Vector3::SIDE_DOWN)->isTransparent()){
 			$this->getLevel()->useBreakOn($this);

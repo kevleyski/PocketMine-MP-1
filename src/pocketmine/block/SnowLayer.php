@@ -29,7 +29,7 @@ use pocketmine\item\TieredTool;
 use pocketmine\math\Vector3;
 use pocketmine\Player;
 
-class SnowLayer extends Flowable{
+class SnowLayer extends Flowable implements RandomTickable{
 
 	protected $id = self::SNOW_LAYER;
 
@@ -72,10 +72,6 @@ class SnowLayer extends Flowable{
 		if(!$this->getSide(Vector3::SIDE_DOWN)->isSolid()){
 			$this->getLevel()->setBlock($this, BlockFactory::get(Block::AIR), false, false);
 		}
-	}
-
-	public function ticksRandomly() : bool{
-		return true;
 	}
 
 	public function onRandomTick() : void{

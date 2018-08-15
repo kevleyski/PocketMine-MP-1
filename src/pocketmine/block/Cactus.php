@@ -33,7 +33,7 @@ use pocketmine\math\Vector3;
 use pocketmine\Player;
 use pocketmine\Server;
 
-class Cactus extends Transparent{
+class Cactus extends Transparent implements RandomTickable{
 
 	protected $id = self::CACTUS;
 
@@ -76,10 +76,6 @@ class Cactus extends Transparent{
 				}
 			}
 		}
-	}
-
-	public function ticksRandomly() : bool{
-		return true;
 	}
 
 	public function onRandomTick() : void{

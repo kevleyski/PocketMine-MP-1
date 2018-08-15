@@ -30,7 +30,7 @@ use pocketmine\item\ItemFactory;
 use pocketmine\math\Vector3;
 use pocketmine\Player;
 
-class NetherWartPlant extends Flowable{
+class NetherWartPlant extends Flowable implements RandomTickable{
 	protected $id = Block::NETHER_WART_PLANT;
 
 	protected $itemId = Item::NETHER_WART;
@@ -58,10 +58,6 @@ class NetherWartPlant extends Flowable{
 		if($this->getSide(Vector3::SIDE_DOWN)->getId() !== Block::SOUL_SAND){
 			$this->getLevel()->useBreakOn($this);
 		}
-	}
-
-	public function ticksRandomly() : bool{
-		return true;
 	}
 
 	public function onRandomTick() : void{

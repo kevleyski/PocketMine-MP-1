@@ -29,7 +29,7 @@ use pocketmine\item\ItemFactory;
 use pocketmine\math\Vector3;
 use pocketmine\Server;
 
-class Mycelium extends Solid{
+class Mycelium extends Solid implements RandomTickable{
 
 	protected $id = self::MYCELIUM;
 
@@ -53,10 +53,6 @@ class Mycelium extends Solid{
 		return [
 			ItemFactory::get(Item::DIRT)
 		];
-	}
-
-	public function ticksRandomly() : bool{
-		return true;
 	}
 
 	public function onRandomTick() : void{

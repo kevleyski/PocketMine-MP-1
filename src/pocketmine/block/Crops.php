@@ -29,7 +29,7 @@ use pocketmine\math\Vector3;
 use pocketmine\Player;
 use pocketmine\Server;
 
-abstract class Crops extends Flowable{
+abstract class Crops extends Flowable implements RandomTickable{
 
 	public function place(Item $item, Block $blockReplace, Block $blockClicked, int $face, Vector3 $clickVector, Player $player = null) : bool{
 		if($blockReplace->getSide(Vector3::SIDE_DOWN)->getId() === Block::FARMLAND){
@@ -68,10 +68,6 @@ abstract class Crops extends Flowable{
 		if($this->getSide(Vector3::SIDE_DOWN)->getId() !== Block::FARMLAND){
 			$this->getLevel()->useBreakOn($this);
 		}
-	}
-
-	public function ticksRandomly() : bool{
-		return true;
 	}
 
 	public function onRandomTick() : void{

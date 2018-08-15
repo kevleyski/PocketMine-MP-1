@@ -285,23 +285,6 @@ class Block extends Position implements BlockIds, Metadatable{
 	}
 
 	/**
-	 * Returns whether random block updates will be done on this block.
-	 *
-	 * @return bool
-	 */
-	public function ticksRandomly() : bool{
-		return false;
-	}
-
-	/**
-	 * Called when this block is randomly updated due to chunk ticking.
-	 * WARNING: This will not be called if ticksRandomly() does not return true!
-	 */
-	public function onRandomTick() : void{
-
-	}
-
-	/**
 	 * Called when this block is updated by the delayed blockupdate scheduler in the level.
 	 */
 	public function onScheduledUpdate() : void{
