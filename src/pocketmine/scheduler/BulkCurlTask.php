@@ -25,6 +25,8 @@ namespace pocketmine\scheduler;
 
 use pocketmine\utils\Internet;
 use pocketmine\utils\InternetException;
+use function serialize;
+use function unserialize;
 
 /**
  * Executes a consecutive list of cURL operations.
@@ -49,7 +51,7 @@ class BulkCurlTask extends AsyncTask{
 		$this->operations = serialize($operations);
 	}
 
-	public function onRun(){
+	public function onRun() : void{
 		$operations = unserialize($this->operations);
 		$results = [];
 		foreach($operations as $op){

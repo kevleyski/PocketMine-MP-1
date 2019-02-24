@@ -25,10 +25,18 @@ declare(strict_types=1);
 namespace pocketmine\utils;
 
 
+use function count;
+
 class Color{
 
 	/** @var int */
-	protected $a, $r, $g, $b;
+	protected $a;
+	/** @var int */
+	protected $r;
+	/** @var int */
+	protected $g;
+	/** @var int */
+	protected $b;
 
 	public function __construct(int $r, int $g, int $b, int $a = 0xff){
 		$this->r = $r & 0xff;
@@ -47,6 +55,7 @@ class Color{
 
 	/**
 	 * Sets the alpha (opacity) value of this colour, lower = more transparent
+	 *
 	 * @param int $a
 	 */
 	public function setA(int $a){
@@ -63,6 +72,7 @@ class Color{
 
 	/**
 	 * Sets the red value of this colour.
+	 *
 	 * @param int $r
 	 */
 	public function setR(int $r){
@@ -79,6 +89,7 @@ class Color{
 
 	/**
 	 * Sets the green value of this colour.
+	 *
 	 * @param int $g
 	 */
 	public function setG(int $g){
@@ -95,6 +106,7 @@ class Color{
 
 	/**
 	 * Sets the blue value of this colour.
+	 *
 	 * @param int $b
 	 */
 	public function setB(int $b){
@@ -105,6 +117,7 @@ class Color{
 	 * Mixes the supplied list of colours together to produce a result colour.
 	 *
 	 * @param Color ...$colors
+	 *
 	 * @return Color
 	 */
 	public static function mix(Color ...$colors) : Color{
@@ -127,6 +140,7 @@ class Color{
 
 	/**
 	 * Returns a Color from the supplied RGB colour code (24-bit)
+	 *
 	 * @param int $code
 	 *
 	 * @return Color
@@ -155,11 +169,14 @@ class Color{
 	}
 
 	/**
-	 * Returns a little-endian ARGB 32-bit colour value.
-	 * @return int
+	 * Returns a Color from the supplied RGBA colour code (32-bit)
+	 *
+	 * @param int $c
+	 *
+	 * @return Color
 	 */
-	public function toBGRA() : int{
-		return ($this->b << 24) | ($this->g << 16) | ($this->r << 8) | $this->a;
+	public static function fromRGBA(int $c) : Color{
+		return new Color(($c >> 24) & 0xff, ($c >> 16) & 0xff, ($c >> 8) & 0xff, $c & 0xff);
 	}
 
 	/**
@@ -168,17 +185,5 @@ class Color{
 	 */
 	public function toRGBA() : int{
 		return ($this->r << 24) | ($this->g << 16) | ($this->b << 8) | $this->a;
-	}
-
-	/**
-	 * Returns a little-endian RGBA colour value.
-	 * @return int
-	 */
-	public function toABGR() : int{
-		return ($this->a << 24) | ($this->b << 16) | ($this->g << 8) | $this->r;
-	}
-
-	public static function fromABGR(int $code){
-		return new Color($code & 0xff, ($code >> 8) & 0xff, ($code >> 16) & 0xff, ($code >> 24) & 0xff);
 	}
 }

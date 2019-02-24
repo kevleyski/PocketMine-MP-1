@@ -28,6 +28,12 @@ use pocketmine\Player;
 use pocketmine\Server;
 use pocketmine\utils\TextFormat;
 use pocketmine\utils\VersionString;
+use function date;
+use function sprintf;
+use function str_repeat;
+use function strlen;
+use function strtolower;
+use function ucfirst;
 
 class AutoUpdater{
 
@@ -66,7 +72,7 @@ class AutoUpdater{
 		$this->updateInfo = $updateInfo;
 		$this->checkUpdate();
 		if($this->hasUpdate()){
-			$this->server->getPluginManager()->callEvent(new UpdateNotifyEvent($this));
+			(new UpdateNotifyEvent($this))->call();
 			if($this->server->getProperty("auto-updater.on-update.warn-console", true)){
 				$this->showConsoleUpdate();
 			}
@@ -105,6 +111,7 @@ class AutoUpdater{
 
 	/**
 	 * Shows a warning to a player to tell them there is an update available
+	 *
 	 * @param Player $player
 	 */
 	public function showPlayerUpdate(Player $player){

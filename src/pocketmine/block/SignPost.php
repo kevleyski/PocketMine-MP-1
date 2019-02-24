@@ -25,19 +25,26 @@ namespace pocketmine\block;
 
 use pocketmine\item\Item;
 use pocketmine\math\AxisAlignedBB;
+use pocketmine\math\Facing;
 use pocketmine\math\Vector3;
 use pocketmine\Player;
-use pocketmine\tile\Sign as TileSign;
-use pocketmine\tile\Tile;
+use function floor;
 
 class SignPost extends Transparent{
 
-	protected $id = self::SIGN_POST;
+	/** @var int */
+	protected $rotation = 0;
 
-	protected $itemId = Item::SIGN;
+	protected function writeStateToMeta() : int{
+		return $this->rotation;
+	}
 
-	public function __construct(int $meta = 0){
-		$this->meta = $meta;
+	public function readStateFromData(int $id, int $stateMeta) : void{
+		$this->rotation = $stateMeta;
+	}
+
+	public function getStateBitmask() : int{
+		return 0b1111;
 	}
 
 	public function getHardness() : float{
@@ -48,45 +55,31 @@ class SignPost extends Transparent{
 		return false;
 	}
 
-	public function getName() : string{
-		return "Sign Post";
-	}
-
 	protected function recalculateBoundingBox() : ?AxisAlignedBB{
 		return null;
 	}
 
+	public function place(Item $item, Block $blockReplace, Block $blockClicked, int $face, Vector3 $clickVector, ?Player $player = null) : bool{
+		if($face !== Facing::DOWN){
 
-	public function place(Item $item, Block $blockReplace, Block $blockClicked, int $face, Vector3 $clickVector, Player $player = null) : bool{
-		if($face !== Vector3::SIDE_DOWN){
-
-			if($face === Vector3::SIDE_UP){
-				$this->meta = $player !== null ? (floor((($player->yaw + 180) * 16 / 360) + 0.5) & 0x0f) : 0;
-				$this->getLevel()->setBlock($blockReplace, $this, true);
-			}else{
-				$this->meta = $face;
-				$this->getLevel()->setBlock($blockReplace, BlockFactory::get(Block::WALL_SIGN, $this->meta), true);
+			if($face === Facing::UP){
+				$this->rotation = $player !== null ? ((int) floor((($player->yaw + 180) * 16 / 360) + 0.5)) & 0x0f : 0;
+				return parent::place($item, $blockReplace, $blockClicked, $face, $clickVector, $player);
 			}
 
-			Tile::createTile(Tile::SIGN, $this->getLevel(), TileSign::createNBT($this, $face, $item, $player));
-
-			return true;
+			return $this->getLevel()->setBlock($blockReplace, BlockFactory::get(Block::WALL_SIGN, $face));
 		}
 
 		return false;
 	}
 
 	public function onNearbyBlockChange() : void{
-		if($this->getSide(Vector3::SIDE_DOWN)->getId() === self::AIR){
+		if($this->getSide(Facing::DOWN)->getId() === self::AIR){
 			$this->getLevel()->useBreakOn($this);
 		}
 	}
 
 	public function getToolType() : int{
 		return BlockToolType::TYPE_AXE;
-	}
-
-	public function getVariantBitmask() : int{
-		return 0;
 	}
 }

@@ -25,49 +25,47 @@ namespace pocketmine\block;
 
 use pocketmine\item\Item;
 use pocketmine\math\AxisAlignedBB;
+use pocketmine\math\Facing;
 use pocketmine\math\Vector3;
 use pocketmine\Player;
 use pocketmine\tile\FlowerPot as TileFlowerPot;
-use pocketmine\tile\Tile;
 
 class FlowerPot extends Flowable{
 
-	public const STATE_EMPTY = 0;
-	public const STATE_FULL = 1;
+	/** @var bool */
+	protected $occupied = false;
 
-	protected $id = self::FLOWER_POT_BLOCK;
-	protected $itemId = Item::FLOWER_POT;
-
-	public function __construct(int $meta = 0){
-		$this->meta = $meta;
+	protected function writeStateToMeta() : int{
+		return $this->occupied ? 1 : 0;
 	}
 
-	public function getName() : string{
-		return "Flower Pot";
+	public function readStateFromData(int $id, int $stateMeta) : void{
+		$this->occupied = $stateMeta !== 0;
+	}
+
+	public function getStateBitmask() : int{
+		return 0b1111; //vanilla uses various values, we only care about 1 and 0 for PE
 	}
 
 	protected function recalculateBoundingBox() : ?AxisAlignedBB{
-		static $f = 0.3125;
-		return new AxisAlignedBB($f, 0, $f, 1 - $f, 0.375, 1 - $f);
+		return AxisAlignedBB::one()->contract(3 / 16, 0, 3 / 16)->trim(Facing::UP, 5 / 8);
 	}
 
-	public function place(Item $item, Block $blockReplace, Block $blockClicked, int $face, Vector3 $clickVector, Player $player = null) : bool{
-		if($this->getSide(Vector3::SIDE_DOWN)->isTransparent()){
+	public function place(Item $item, Block $blockReplace, Block $blockClicked, int $face, Vector3 $clickVector, ?Player $player = null) : bool{
+		if($this->getSide(Facing::DOWN)->isTransparent()){
 			return false;
 		}
 
-		$this->getLevel()->setBlock($blockReplace, $this, true, true);
-		Tile::createTile(Tile::FLOWER_POT, $this->getLevel(), TileFlowerPot::createNBT($this, $face, $item, $player));
-		return true;
+		return parent::place($item, $blockReplace, $blockClicked, $face, $clickVector, $player);
 	}
 
 	public function onNearbyBlockChange() : void{
-		if($this->getSide(Vector3::SIDE_DOWN)->isTransparent()){
+		if($this->getSide(Facing::DOWN)->isTransparent()){
 			$this->getLevel()->useBreakOn($this);
 		}
 	}
 
-	public function onActivate(Item $item, Player $player = null) : bool{
+	public function onActivate(Item $item, int $face, Vector3 $clickVector, ?Player $player = null) : bool{
 		$pot = $this->getLevel()->getTile($this);
 		if(!($pot instanceof TileFlowerPot)){
 			return false;
@@ -76,15 +74,11 @@ class FlowerPot extends Flowable{
 			return true;
 		}
 
-		$this->setDamage(self::STATE_FULL); //specific damage value is unnecessary, it just needs to be non-zero to show an item.
-		$this->getLevel()->setBlock($this, $this, true, false);
+		$this->occupied = true;
+		$this->getLevel()->setBlock($this, $this, false);
 		$pot->setItem($item->pop());
 
 		return true;
-	}
-
-	public function getVariantBitmask() : int{
-		return 0;
 	}
 
 	public function getDropsForCompatibleTool(Item $item) : array{

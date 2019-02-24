@@ -49,7 +49,6 @@ class LoginSessionHandler extends SessionHandler{
 			$pk = new PlayStatusPacket();
 			$pk->status = $packet->protocol < ProtocolInfo::CURRENT_PROTOCOL ?
 				PlayStatusPacket::LOGIN_FAILED_CLIENT : PlayStatusPacket::LOGIN_FAILED_SERVER;
-			$pk->protocol = $packet->protocol;
 			$this->session->sendDataPacket($pk, true);
 
 			//This pocketmine disconnect message will only be seen by the console (PlayStatusPacket causes the messages to be shown for the client)
@@ -61,13 +60,13 @@ class LoginSessionHandler extends SessionHandler{
 			return true;
 		}
 
-		if(!Player::isValidUserName($packet->username)){
+		if(!Player::isValidUserName($packet->playerInfo->getUsername())){
 			$this->session->disconnect("disconnectionScreen.invalidName");
 
 			return true;
 		}
 
-		if($packet->skin === null or !$packet->skin->isValid()){
+		if(!$packet->playerInfo->getSkin()->isValid()){
 			$this->session->disconnect("disconnectionScreen.invalidSkin");
 
 			return true;

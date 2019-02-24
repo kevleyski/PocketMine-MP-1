@@ -50,11 +50,11 @@ class AsyncTaskMemoryLeakTest extends Test{
 class TestAsyncTask extends AsyncTask{
 	public static $destroyed = false;
 
-	public function onRun(){
+	public function onRun() : void{
 		usleep(50 * 1000); //1 server tick
 	}
 
-	public function __destruct(){
+	protected function reallyDestruct() : void{
 		self::$destroyed = true;
 	}
 }

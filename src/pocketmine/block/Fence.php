@@ -24,28 +24,39 @@ declare(strict_types=1);
 namespace pocketmine\block;
 
 use pocketmine\math\AxisAlignedBB;
-use pocketmine\math\Vector3;
+use pocketmine\math\Facing;
 
 abstract class Fence extends Transparent{
-
-	public function __construct(int $meta = 0){
-		$this->meta = $meta;
-	}
+	/** @var bool[] facing => dummy */
+	protected $connections = [];
 
 	public function getThickness() : float{
 		return 0.25;
+	}
+
+	public function readStateFromWorld() : void{
+		parent::readStateFromWorld();
+
+		foreach(Facing::HORIZONTAL as $facing){
+			$block = $this->getSide($facing);
+			if($block instanceof static or $block instanceof FenceGate or ($block->isSolid() and !$block->isTransparent())){
+				$this->connections[$facing] = true;
+			}else{
+				unset($this->connections[$facing]);
+			}
+		}
 	}
 
 	protected function recalculateBoundingBox() : ?AxisAlignedBB{
 		$width = 0.5 - $this->getThickness() / 2;
 
 		return new AxisAlignedBB(
-			($this->canConnect($this->getSide(Vector3::SIDE_WEST)) ? 0 : $width),
+			(isset($this->connections[Facing::WEST]) ? 0 : $width),
 			0,
-			($this->canConnect($this->getSide(Vector3::SIDE_NORTH)) ? 0 : $width),
-			1 - ($this->canConnect($this->getSide(Vector3::SIDE_EAST)) ? 0 : $width),
+			(isset($this->connections[Facing::NORTH]) ? 0 : $width),
+			1 - (isset($this->connections[Facing::EAST]) ? 0 : $width),
 			1.5,
-			1 - ($this->canConnect($this->getSide(Vector3::SIDE_SOUTH)) ? 0 : $width)
+			1 - (isset($this->connections[Facing::WEST]) ? 0 : $width)
 		);
 	}
 
@@ -55,8 +66,8 @@ abstract class Fence extends Transparent{
 		/** @var AxisAlignedBB[] $bbs */
 		$bbs = [];
 
-		$connectWest = $this->canConnect($this->getSide(Vector3::SIDE_WEST));
-		$connectEast = $this->canConnect($this->getSide(Vector3::SIDE_EAST));
+		$connectWest = isset($this->connections[Facing::WEST]);
+		$connectEast = isset($this->connections[Facing::EAST]);
 
 		if($connectWest or $connectEast){
 			//X axis (west/east)
@@ -70,8 +81,8 @@ abstract class Fence extends Transparent{
 			);
 		}
 
-		$connectNorth = $this->canConnect($this->getSide(Vector3::SIDE_NORTH));
-		$connectSouth = $this->canConnect($this->getSide(Vector3::SIDE_SOUTH));
+		$connectNorth = isset($this->connections[Facing::NORTH]);
+		$connectSouth = isset($this->connections[Facing::SOUTH]);
 
 		if($connectNorth or $connectSouth){
 			//Z axis (north/south)
@@ -100,9 +111,5 @@ abstract class Fence extends Transparent{
 		}
 
 		return $bbs;
-	}
-
-	public function canConnect(Block $block){
-		return $block instanceof static or $block instanceof FenceGate or ($block->isSolid() and !$block->isTransparent());
 	}
 }

@@ -27,7 +27,7 @@ namespace pocketmine\command;
 interface CommandMap{
 
 	/**
-	 * @param string $fallbackPrefix
+	 * @param string    $fallbackPrefix
 	 * @param Command[] $commands
 	 */
 	public function registerAll(string $fallbackPrefix, array $commands);
@@ -39,7 +39,7 @@ interface CommandMap{
 	 *
 	 * @return bool
 	 */
-	public function register(string $fallbackPrefix, Command $command, string $label = null) : bool;
+	public function register(string $fallbackPrefix, Command $command, ?string $label = null) : bool;
 
 	/**
 	 * @param CommandSender $sender

@@ -47,7 +47,6 @@ class PacketPool{
 		static::registerPacket(new AddEntityPacket());
 		static::registerPacket(new RemoveEntityPacket());
 		static::registerPacket(new AddItemEntityPacket());
-		static::registerPacket(new AddHangingEntityPacket());
 		static::registerPacket(new TakeItemEntityPacket());
 		static::registerPacket(new MoveEntityAbsolutePacket());
 		static::registerPacket(new MovePlayerPacket());
@@ -55,7 +54,7 @@ class PacketPool{
 		static::registerPacket(new UpdateBlockPacket());
 		static::registerPacket(new AddPaintingPacket());
 		static::registerPacket(new ExplodePacket());
-		static::registerPacket(new LevelSoundEventPacket());
+		static::registerPacket(new LevelSoundEventPacketV1());
 		static::registerPacket(new LevelEventPacket());
 		static::registerPacket(new BlockEventPacket());
 		static::registerPacket(new EntityEventPacket());
@@ -143,7 +142,17 @@ class PacketPool{
 		static::registerPacket(new LabTablePacket());
 		static::registerPacket(new UpdateBlockSyncedPacket());
 		static::registerPacket(new MoveEntityDeltaPacket());
+		static::registerPacket(new SetScoreboardIdentityPacket());
 		static::registerPacket(new SetLocalPlayerAsInitializedPacket());
+		static::registerPacket(new UpdateSoftEnumPacket());
+		static::registerPacket(new NetworkStackLatencyPacket());
+		static::registerPacket(new ScriptCustomEventPacket());
+		static::registerPacket(new SpawnParticleEffectPacket());
+		static::registerPacket(new AvailableEntityIdentifiersPacket());
+		static::registerPacket(new LevelSoundEventPacketV2());
+		static::registerPacket(new NetworkChunkPublisherUpdatePacket());
+		static::registerPacket(new BiomeDefinitionListPacket());
+		static::registerPacket(new LevelSoundEventPacket());
 	}
 
 	/**
@@ -155,6 +164,7 @@ class PacketPool{
 
 	/**
 	 * @param int $pid
+	 *
 	 * @return DataPacket
 	 */
 	public static function getPacketById(int $pid) : DataPacket{
@@ -163,6 +173,7 @@ class PacketPool{
 
 	/**
 	 * @param string $buffer
+	 *
 	 * @return DataPacket
 	 */
 	public static function getPacket(string $buffer) : DataPacket{

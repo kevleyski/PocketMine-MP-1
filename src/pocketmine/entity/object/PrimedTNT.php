@@ -81,7 +81,7 @@ class PrimedTNT extends Entity implements Explosive{
 		return $nbt;
 	}
 
-	public function entityBaseTick(int $tickDiff = 1) : bool{
+	protected function entityBaseTick(int $tickDiff = 1) : bool{
 		if($this->closed){
 			return false;
 		}
@@ -105,8 +105,8 @@ class PrimedTNT extends Entity implements Explosive{
 	}
 
 	public function explode() : void{
-		$this->server->getPluginManager()->callEvent($ev = new ExplosionPrimeEvent($this, 4));
-
+		$ev = new ExplosionPrimeEvent($this, 4);
+		$ev->call();
 		if(!$ev->isCancelled()){
 			$explosion = new Explosion($this, $ev->getForce(), $this);
 			if($ev->isBlockBreaking()){

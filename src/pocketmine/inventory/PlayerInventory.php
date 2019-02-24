@@ -29,6 +29,8 @@ use pocketmine\network\mcpe\protocol\InventoryContentPacket;
 use pocketmine\network\mcpe\protocol\MobEquipmentPacket;
 use pocketmine\network\mcpe\protocol\types\ContainerIds;
 use pocketmine\Player;
+use function in_array;
+use function is_array;
 
 class PlayerInventory extends BaseInventory{
 
@@ -60,6 +62,7 @@ class PlayerInventory extends BaseInventory{
 
 	/**
 	 * @param int $slot
+	 *
 	 * @throws \InvalidArgumentException
 	 */
 	private function throwIfNotHotbarSlot(int $slot){
@@ -72,6 +75,7 @@ class PlayerInventory extends BaseInventory{
 	 * Returns the item in the specified hotbar slot.
 	 *
 	 * @param int $hotbarSlot
+	 *
 	 * @return Item
 	 *
 	 * @throws \InvalidArgumentException if the hotbar slot index is out of range
@@ -137,6 +141,7 @@ class PlayerInventory extends BaseInventory{
 
 	/**
 	 * Sends the currently-held item to specified targets.
+	 *
 	 * @param Player|Player[] $target
 	 */
 	public function sendHeldItem($target){
@@ -170,16 +175,21 @@ class PlayerInventory extends BaseInventory{
 	}
 
 	public function sendCreativeContents(){
+		//TODO: this mess shouldn't be in here
+		$holder = $this->getHolder();
+		if(!($holder instanceof Player)){
+			throw new \LogicException("Cannot send creative inventory contents to non-player inventory holder");
+		}
 		$pk = new InventoryContentPacket();
 		$pk->windowId = ContainerIds::CREATIVE;
 
-		if(!$this->getHolder()->isSpectator()){ //fill it for all gamemodes except spectator
+		if(!$holder->isSpectator()){ //fill it for all gamemodes except spectator
 			foreach(Item::getCreativeItems() as $i => $item){
 				$pk->items[$i] = clone $item;
 			}
 		}
 
-		$this->getHolder()->sendDataPacket($pk);
+		$holder->sendDataPacket($pk);
 	}
 
 	/**

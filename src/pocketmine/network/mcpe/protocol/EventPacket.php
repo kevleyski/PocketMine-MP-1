@@ -27,7 +27,7 @@ namespace pocketmine\network\mcpe\protocol;
 
 use pocketmine\network\mcpe\handler\SessionHandler;
 
-class EventPacket extends DataPacket{
+class EventPacket extends DataPacket implements ClientboundPacket{
 	public const NETWORK_ID = ProtocolInfo::EVENT_PACKET;
 
 	public const TYPE_ACHIEVEMENT_AWARDED = 0;
@@ -40,6 +40,9 @@ class EventPacket extends DataPacket{
 	public const TYPE_BOSS_KILLED = 7;
 	public const TYPE_AGENT_COMMAND = 8;
 	public const TYPE_AGENT_CREATED = 9;
+	public const TYPE_PATTERN_REMOVED = 10; //???
+	public const TYPE_COMMANED_EXECUTED = 11;
+	public const TYPE_FISH_BUCKETED = 12;
 
 	/** @var int */
 	public $playerRuntimeId;

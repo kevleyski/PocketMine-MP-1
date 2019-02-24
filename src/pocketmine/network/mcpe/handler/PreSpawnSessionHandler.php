@@ -24,6 +24,7 @@ declare(strict_types=1);
 namespace pocketmine\network\mcpe\handler;
 
 use pocketmine\network\mcpe\NetworkSession;
+use pocketmine\network\mcpe\protocol\AvailableEntityIdentifiersPacket;
 use pocketmine\network\mcpe\protocol\RequestChunkRadiusPacket;
 use pocketmine\network\mcpe\protocol\SetLocalPlayerAsInitializedPacket;
 use pocketmine\network\mcpe\protocol\StartGamePacket;
@@ -76,6 +77,10 @@ class PreSpawnSessionHandler extends SessionHandler{
 		$pk->worldName = $this->server->getMotd();
 		$this->session->sendDataPacket($pk);
 
+		$this->session->sendDataPacket(new AvailableEntityIdentifiersPacket());
+
+		$this->player->setImmobile(); //HACK: fix client-side falling pre-spawn
+
 		$this->player->getLevel()->sendTime($this->player);
 
 		$this->player->sendAttributes(true);
@@ -99,6 +104,8 @@ class PreSpawnSessionHandler extends SessionHandler{
 	}
 
 	public function handleSetLocalPlayerAsInitialized(SetLocalPlayerAsInitializedPacket $packet) : bool{
+		$this->player->setImmobile(false); //HACK: this is set to prevent client-side falling before spawn
+
 		$this->player->doFirstSpawn();
 
 		return true;

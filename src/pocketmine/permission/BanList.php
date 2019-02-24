@@ -24,7 +24,15 @@ declare(strict_types=1);
 namespace pocketmine\permission;
 
 use pocketmine\Server;
-use pocketmine\utils\MainLogger;
+use function fclose;
+use function fgets;
+use function fopen;
+use function fwrite;
+use function is_resource;
+use function strftime;
+use function strtolower;
+use function time;
+use function trim;
 
 class BanList{
 
@@ -110,7 +118,7 @@ class BanList{
 	 *
 	 * @return BanEntry
 	 */
-	public function addBan(string $target, string $reason = null, \DateTime $expires = null, string $source = null) : BanEntry{
+	public function addBan(string $target, ?string $reason = null, ?\DateTime $expires = null, ?string $source = null) : BanEntry{
 		$entry = new BanEntry($target);
 		$entry->setSource($source ?? $entry->getSource());
 		$entry->setExpires($expires);
@@ -149,19 +157,19 @@ class BanList{
 				if($line{0} !== "#"){
 					try{
 						$entry = BanEntry::fromString($line);
-						if($entry instanceof BanEntry){
+						if($entry !== null){
 							$this->list[$entry->getName()] = $entry;
 						}
-					}catch(\Throwable $e){
-						$logger = MainLogger::getLogger();
-						$logger->critical("Failed to parse ban entry from string \"$line\": " . $e->getMessage());
-						$logger->logException($e);
+					}catch(\RuntimeException $e){
+						$logger = \GlobalLogger::get();
+						$logger->critical("Failed to parse ban entry from string \"" . trim($line) . "\": " . $e->getMessage());
 					}
+
 				}
 			}
 			fclose($fp);
 		}else{
-			MainLogger::getLogger()->error("Could not load ban list");
+			\GlobalLogger::get()->error("Could not load ban list");
 		}
 	}
 
@@ -182,7 +190,7 @@ class BanList{
 			}
 			fclose($fp);
 		}else{
-			MainLogger::getLogger()->error("Could not save ban list");
+			\GlobalLogger::get()->error("Could not save ban list");
 		}
 	}
 }

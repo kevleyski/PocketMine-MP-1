@@ -28,41 +28,49 @@ namespace pocketmine\network\mcpe\protocol;
 
 use pocketmine\network\mcpe\handler\SessionHandler;
 use pocketmine\resourcepacks\ResourcePack;
+use function count;
 
-class ResourcePacksInfoPacket extends DataPacket{
+class ResourcePacksInfoPacket extends DataPacket implements ClientboundPacket{
 	public const NETWORK_ID = ProtocolInfo::RESOURCE_PACKS_INFO_PACKET;
 
 	/** @var bool */
 	public $mustAccept = false; //if true, forces client to use selected resource packs
+	/** @var bool */
+	public $hasScripts = false; //if true, causes disconnect for any platform that doesn't support scripts yet
 	/** @var ResourcePack[] */
 	public $behaviorPackEntries = [];
 	/** @var ResourcePack[] */
 	public $resourcePackEntries = [];
 
 	protected function decodePayload() : void{
-		/*$this->mustAccept = $this->getBool();
+		$this->mustAccept = $this->getBool();
+		$this->hasScripts = $this->getBool();
 		$behaviorPackCount = $this->getLShort();
 		while($behaviorPackCount-- > 0){
-			$id = $this->getString();
-			$version = $this->getString();
-			$size = $this->getLLong();
-			$this->behaviorPackEntries[] = new ResourcePackInfoEntry($id, $version, $size);
 			$this->getString();
+			$this->getString();
+			$this->getLLong();
+			$this->getString();
+			$this->getString();
+			$this->getString();
+			$this->getBool();
 		}
 
 		$resourcePackCount = $this->getLShort();
 		while($resourcePackCount-- > 0){
-			$id = $this->getString();
-			$version = $this->getString();
-			$size = $this->getLLong();
-			$this->resourcePackEntries[] = new ResourcePackInfoEntry($id, $version, $size);
 			$this->getString();
-		}*/
+			$this->getString();
+			$this->getLLong();
+			$this->getString();
+			$this->getString();
+			$this->getString();
+			$this->getBool();
+		}
 	}
 
 	protected function encodePayload() : void{
-
 		$this->putBool($this->mustAccept);
+		$this->putBool($this->hasScripts);
 		$this->putLShort(count($this->behaviorPackEntries));
 		foreach($this->behaviorPackEntries as $entry){
 			$this->putString($entry->getPackId());
@@ -70,6 +78,8 @@ class ResourcePacksInfoPacket extends DataPacket{
 			$this->putLLong($entry->getPackSize());
 			$this->putString(""); //TODO: encryption key
 			$this->putString(""); //TODO: subpack name
+			$this->putString(""); //TODO: content identity
+			$this->putBool(false); //TODO: has scripts (?)
 		}
 		$this->putLShort(count($this->resourcePackEntries));
 		foreach($this->resourcePackEntries as $entry){
@@ -78,6 +88,8 @@ class ResourcePacksInfoPacket extends DataPacket{
 			$this->putLLong($entry->getPackSize());
 			$this->putString(""); //TODO: encryption key
 			$this->putString(""); //TODO: subpack name
+			$this->putString(""); //TODO: content identity
+			$this->putBool(false); //TODO: seems useless for resource packs
 		}
 	}
 

@@ -23,6 +23,8 @@ declare(strict_types=1);
 
 namespace pocketmine\level\format;
 
+use function str_repeat;
+
 class EmptySubChunk implements SubChunkInterface{
 	/** @var EmptySubChunk */
 	private static $instance;
@@ -43,23 +45,15 @@ class EmptySubChunk implements SubChunkInterface{
 		return 0;
 	}
 
-	public function setBlockId(int $x, int $y, int $z, int $id) : bool{
-		return false;
-	}
-
 	public function getBlockData(int $x, int $y, int $z) : int{
 		return 0;
-	}
-
-	public function setBlockData(int $x, int $y, int $z, int $data) : bool{
-		return false;
 	}
 
 	public function getFullBlock(int $x, int $y, int $z) : int{
 		return 0;
 	}
 
-	public function setBlock(int $x, int $y, int $z, ?int $id = null, ?int $data = null) : bool{
+	public function setBlock(int $x, int $y, int $z, int $id, int $data) : bool{
 		return false;
 	}
 
@@ -81,22 +75,6 @@ class EmptySubChunk implements SubChunkInterface{
 
 	public function getHighestBlockAt(int $x, int $z) : int{
 		return -1;
-	}
-
-	public function getBlockIdColumn(int $x, int $z) : string{
-		return "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00";
-	}
-
-	public function getBlockDataColumn(int $x, int $z) : string{
-		return "\x00\x00\x00\x00\x00\x00\x00\x00";
-	}
-
-	public function getBlockLightColumn(int $x, int $z) : string{
-		return "\x00\x00\x00\x00\x00\x00\x00\x00";
-	}
-
-	public function getBlockSkyLightColumn(int $x, int $z) : string{
-		return "\xff\xff\xff\xff\xff\xff\xff\xff";
 	}
 
 	public function getBlockIdArray() : string{
@@ -125,9 +103,5 @@ class EmptySubChunk implements SubChunkInterface{
 
 	public function networkSerialize() : string{
 		return "\x00" . str_repeat("\x00", 6144);
-	}
-
-	public function fastSerialize() : string{
-		throw new \BadMethodCallException("Should not try to serialize empty subchunks");
 	}
 }

@@ -26,6 +26,7 @@ namespace pocketmine\permission;
 use pocketmine\plugin\Plugin;
 use pocketmine\plugin\PluginException;
 use pocketmine\timings\Timings;
+use function spl_object_id;
 
 class PermissibleBase implements Permissible{
 	/** @var ServerOperator */
@@ -106,17 +107,17 @@ class PermissibleBase implements Permissible{
 	 *
 	 * @param Plugin $plugin
 	 * @param string $name
-	 * @param bool $value
+	 * @param bool   $value
 	 *
 	 * @return PermissionAttachment
 	 */
-	public function addAttachment(Plugin $plugin, string $name = null, bool $value = null) : PermissionAttachment{
+	public function addAttachment(Plugin $plugin, ?string $name = null, ?bool $value = null) : PermissionAttachment{
 		if(!$plugin->isEnabled()){
 			throw new PluginException("Plugin " . $plugin->getDescription()->getName() . " is disabled");
 		}
 
 		$result = new PermissionAttachment($plugin, $this->parent ?? $this);
-		$this->attachments[spl_object_hash($result)] = $result;
+		$this->attachments[spl_object_id($result)] = $result;
 		if($name !== null and $value !== null){
 			$result->setPermission($name, $value);
 		}
@@ -130,8 +131,8 @@ class PermissibleBase implements Permissible{
 	 * @param PermissionAttachment $attachment
 	 */
 	public function removeAttachment(PermissionAttachment $attachment){
-		if(isset($this->attachments[spl_object_hash($attachment)])){
-			unset($this->attachments[spl_object_hash($attachment)]);
+		if(isset($this->attachments[spl_object_id($attachment)])){
+			unset($this->attachments[spl_object_id($attachment)]);
 			if(($ex = $attachment->getRemovalCallback()) !== null){
 				$ex->attachmentRemoved($attachment);
 			}
@@ -166,9 +167,7 @@ class PermissibleBase implements Permissible{
 
 	public function clearPermissions(){
 		$permManager = PermissionManager::getInstance();
-		foreach(array_keys($this->permissions) as $name){
-			$permManager->unsubscribeFromPermission($name, $this->parent ?? $this);
-		}
+		$permManager->unsubscribeFromAllPermissions($this->parent ?? $this);
 
 		$permManager->unsubscribeFromDefaultPerms(false, $this->parent ?? $this);
 		$permManager->unsubscribeFromDefaultPerms(true, $this->parent ?? $this);

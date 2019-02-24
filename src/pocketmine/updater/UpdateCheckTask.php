@@ -24,10 +24,10 @@ declare(strict_types=1);
 
 namespace pocketmine\updater;
 
-
 use pocketmine\scheduler\AsyncTask;
-use pocketmine\Server;
 use pocketmine\utils\Internet;
+use function is_array;
+use function json_decode;
 
 class UpdateCheckTask extends AsyncTask{
 
@@ -44,7 +44,7 @@ class UpdateCheckTask extends AsyncTask{
 		$this->channel = $channel;
 	}
 
-	public function onRun(){
+	public function onRun() : void{
 		$error = "";
 		$response = Internet::getURL($this->endpoint . "?channel=" . $this->channel, 4, [], $error);
 		$this->error = $error;
@@ -60,7 +60,7 @@ class UpdateCheckTask extends AsyncTask{
 					isset($response["download_url"])
 				){
 					$response["details_url"] = $response["details_url"] ?? null;
-					$this->setResult($response, true);
+					$this->setResult($response);
 				}elseif(isset($response["error"])){
 					$this->error = $response["error"];
 				}else{
@@ -72,7 +72,7 @@ class UpdateCheckTask extends AsyncTask{
 		}
 	}
 
-	public function onCompletion(Server $server){
+	public function onCompletion() : void{
 		/** @var AutoUpdater $updater */
 		$updater = $this->fetchLocal();
 		if($this->hasResult()){

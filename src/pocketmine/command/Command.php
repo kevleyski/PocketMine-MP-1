@@ -26,12 +26,15 @@ declare(strict_types=1);
  */
 namespace pocketmine\command;
 
+use pocketmine\command\utils\CommandException;
 use pocketmine\lang\TextContainer;
 use pocketmine\lang\TranslationContainer;
 use pocketmine\permission\PermissionManager;
 use pocketmine\Server;
 use pocketmine\timings\TimingsHandler;
 use pocketmine\utils\TextFormat;
+use function explode;
+use function str_replace;
 
 abstract class Command{
 
@@ -76,7 +79,7 @@ abstract class Command{
 	 * @param string   $usageMessage
 	 * @param string[] $aliases
 	 */
-	public function __construct(string $name, string $description = "", string $usageMessage = null, array $aliases = []){
+	public function __construct(string $name, string $description = "", ?string $usageMessage = null, array $aliases = []){
 		$this->name = $name;
 		$this->setLabel($name);
 		$this->setDescription($description);
@@ -90,6 +93,7 @@ abstract class Command{
 	 * @param string[]      $args
 	 *
 	 * @return mixed
+	 * @throws CommandException
 	 */
 	abstract public function execute(CommandSender $sender, string $commandLabel, array $args);
 
@@ -111,7 +115,7 @@ abstract class Command{
 	/**
 	 * @param string|null $permission
 	 */
-	public function setPermission(string $permission = null){
+	public function setPermission(?string $permission){
 		$this->permission = $permission;
 	}
 

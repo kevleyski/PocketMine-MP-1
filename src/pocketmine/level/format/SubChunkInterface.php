@@ -27,6 +27,7 @@ interface SubChunkInterface{
 
 	/**
 	 * @param bool $checkLight
+	 *
 	 * @return bool
 	 */
 	public function isEmpty(bool $checkLight = true) : bool;
@@ -44,30 +45,10 @@ interface SubChunkInterface{
 	 * @param int $x
 	 * @param int $y
 	 * @param int $z
-	 * @param int $id
-	 *
-	 * @return bool
-	 */
-	public function setBlockId(int $x, int $y, int $z, int $id) : bool;
-
-	/**
-	 * @param int $x
-	 * @param int $y
-	 * @param int $z
 	 *
 	 * @return int
 	 */
 	public function getBlockData(int $x, int $y, int $z) : int;
-
-	/**
-	 * @param int $x
-	 * @param int $y
-	 * @param int $z
-	 * @param int $data
-	 *
-	 * @return bool
-	 */
-	public function setBlockData(int $x, int $y, int $z, int $data) : bool;
 
 	/**
 	 * @param int $x
@@ -79,15 +60,15 @@ interface SubChunkInterface{
 	public function getFullBlock(int $x, int $y, int $z) : int;
 
 	/**
-	 * @param int      $x
-	 * @param int      $y
-	 * @param int      $z
-	 * @param int|null $id
-	 * @param int|null $data
+	 * @param int $x
+	 * @param int $y
+	 * @param int $z
+	 * @param int $id
+	 * @param int $data
 	 *
 	 * @return bool
 	 */
-	public function setBlock(int $x, int $y, int $z, ?int $id = null, ?int $data = null) : bool;
+	public function setBlock(int $x, int $y, int $z, int $id, int $data) : bool;
 
 	/**
 	 * @param int $x
@@ -136,38 +117,6 @@ interface SubChunkInterface{
 	public function getHighestBlockAt(int $x, int $z) : int;
 
 	/**
-	 * @param int $x
-	 * @param int $z
-	 *
-	 * @return string
-	 */
-	public function getBlockIdColumn(int $x, int $z) : string;
-
-	/**
-	 * @param int $x
-	 * @param int $z
-	 *
-	 * @return string
-	 */
-	public function getBlockDataColumn(int $x, int $z) : string;
-
-	/**
-	 * @param int $x
-	 * @param int $z
-	 *
-	 * @return string
-	 */
-	public function getBlockLightColumn(int $x, int $z) : string;
-
-	/**
-	 * @param int $x
-	 * @param int $z
-	 *
-	 * @return string
-	 */
-	public function getBlockSkyLightColumn(int $x, int $z) : string;
-
-	/**
 	 * @return string
 	 */
 	public function getBlockIdArray() : string;
@@ -201,9 +150,4 @@ interface SubChunkInterface{
 	 * @return string
 	 */
 	public function networkSerialize() : string;
-
-	/**
-	 * @return string
-	 */
-	public function fastSerialize() : string;
 }

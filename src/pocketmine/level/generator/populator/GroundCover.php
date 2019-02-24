@@ -23,11 +23,14 @@ declare(strict_types=1);
 
 namespace pocketmine\level\generator\populator;
 
+use pocketmine\block\Block;
 use pocketmine\block\BlockFactory;
 use pocketmine\block\Liquid;
 use pocketmine\level\biome\Biome;
 use pocketmine\level\ChunkManager;
 use pocketmine\utils\Random;
+use function count;
+use function min;
 
 class GroundCover extends Populator{
 
@@ -43,9 +46,9 @@ class GroundCover extends Populator{
 						$diffY = 1;
 					}
 
-					$column = $chunk->getBlockIdColumn($x, $z);
 					for($y = 127; $y > 0; --$y){
-						if($column{$y} !== "\x00" and !BlockFactory::get(ord($column{$y}))->isTransparent()){
+						$id = $chunk->getBlockId($x, $y, $z);
+						if($id !== Block::AIR and !BlockFactory::get($id)->isTransparent()){
 							break;
 						}
 					}
@@ -53,17 +56,15 @@ class GroundCover extends Populator{
 					$endY = $startY - count($cover);
 					for($y = $startY; $y > $endY and $y >= 0; --$y){
 						$b = $cover[$startY - $y];
-						if($column{$y} === "\x00" and $b->isSolid()){
+						$id = $chunk->getBlockId($x, $y, $z);
+						if($id === Block::AIR and $b->isSolid()){
 							break;
 						}
-						if($b->canBeFlowedInto() and BlockFactory::get(ord($column{$y})) instanceof Liquid){
+						if($b->canBeFlowedInto() and BlockFactory::get($id) instanceof Liquid){
 							continue;
 						}
-						if($b->getDamage() === 0){
-							$chunk->setBlockId($x, $y, $z, $b->getId());
-						}else{
-							$chunk->setBlock($x, $y, $z, $b->getId(), $b->getDamage());
-						}
+
+						$chunk->setBlock($x, $y, $z, $b->getId(), $b->getDamage());
 					}
 				}
 			}

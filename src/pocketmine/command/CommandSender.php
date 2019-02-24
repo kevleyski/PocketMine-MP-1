@@ -54,7 +54,8 @@ interface CommandSender extends Permissible{
 
 	/**
 	 * Sets the line height used for command output pagination for this command sender. `null` will reset it to default.
+	 *
 	 * @param int|null $height
 	 */
-	public function setScreenLineHeight(int $height = null);
+	public function setScreenLineHeight(?int $height);
 }

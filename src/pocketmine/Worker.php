@@ -28,7 +28,7 @@ namespace pocketmine;
  */
 abstract class Worker extends \Worker{
 
-	/** @var \ClassLoader */
+	/** @var \ClassLoader|null */
 	protected $classLoader;
 	/** @var string|null */
 	protected $composerAutoloaderPath;
@@ -39,7 +39,7 @@ abstract class Worker extends \Worker{
 		return $this->classLoader;
 	}
 
-	public function setClassLoader(\ClassLoader $loader = null){
+	public function setClassLoader(?\ClassLoader $loader = null){
 		$this->composerAutoloaderPath = \pocketmine\COMPOSER_AUTOLOADER_PATH;
 
 		if($loader === null){

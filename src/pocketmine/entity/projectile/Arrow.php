@@ -36,6 +36,8 @@ use pocketmine\network\mcpe\protocol\EntityEventPacket;
 use pocketmine\network\mcpe\protocol\LevelSoundEventPacket;
 use pocketmine\network\mcpe\protocol\TakeItemEntityPacket;
 use pocketmine\Player;
+use function mt_rand;
+use function sqrt;
 
 class Arrow extends Projectile{
 	public const NETWORK_ID = self::ARROW;
@@ -61,6 +63,9 @@ class Arrow extends Projectile{
 	/** @var float */
 	protected $punchKnockback = 0.0;
 
+	/** @var int */
+	protected $collideTicks = 0;
+
 	public function __construct(Level $level, CompoundTag $nbt, ?Entity $shootingEntity = null, bool $critical = false){
 		parent::__construct($level, $nbt, $shootingEntity);
 		$this->setCritical($critical);
@@ -70,11 +75,13 @@ class Arrow extends Projectile{
 		parent::initEntity($nbt);
 
 		$this->pickupMode = $nbt->getByte(self::TAG_PICKUP, self::PICKUP_ANY, true);
+		$this->collideTicks = $nbt->getShort("life", $this->collideTicks);
 	}
 
 	public function saveNBT() : CompoundTag{
 		$nbt = parent::saveNBT();
 		$nbt->setByte(self::TAG_PICKUP, $this->pickupMode);
+		$nbt->setShort("life", $this->collideTicks);
 		return $nbt;
 	}
 
@@ -109,16 +116,21 @@ class Arrow extends Projectile{
 		$this->punchKnockback = $punchKnockback;
 	}
 
-	public function entityBaseTick(int $tickDiff = 1) : bool{
+	protected function entityBaseTick(int $tickDiff = 1) : bool{
 		if($this->closed){
 			return false;
 		}
 
 		$hasUpdate = parent::entityBaseTick($tickDiff);
 
-		if($this->age > 1200){
-			$this->flagForDespawn();
-			$hasUpdate = true;
+		if($this->isCollided){
+			$this->collideTicks += $tickDiff;
+			if($this->collideTicks > 1200){
+				$this->flagForDespawn();
+				$hasUpdate = true;
+			}
+		}else{
+			$this->collideTicks = 0;
 		}
 
 		return $hasUpdate;
@@ -176,7 +188,7 @@ class Arrow extends Projectile{
 			$ev->setCancelled();
 		}
 
-		$this->server->getPluginManager()->callEvent($ev);
+		$ev->call();
 		if($ev->isCancelled()){
 			return;
 		}

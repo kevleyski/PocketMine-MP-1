@@ -31,6 +31,9 @@ use pocketmine\permission\PermissionAttachmentInfo;
 use pocketmine\plugin\Plugin;
 use pocketmine\Server;
 use pocketmine\utils\MainLogger;
+use function explode;
+use function trim;
+use const PHP_INT_MAX;
 
 class ConsoleCommandSender implements CommandSender{
 
@@ -64,11 +67,11 @@ class ConsoleCommandSender implements CommandSender{
 	/**
 	 * @param Plugin $plugin
 	 * @param string $name
-	 * @param bool $value
+	 * @param bool   $value
 	 *
 	 * @return PermissionAttachment
 	 */
-	public function addAttachment(Plugin $plugin, string $name = null, bool $value = null) : PermissionAttachment{
+	public function addAttachment(Plugin $plugin, ?string $name = null, ?bool $value = null) : PermissionAttachment{
 		return $this->perm->addAttachment($plugin, $name, $value);
 	}
 
@@ -139,7 +142,7 @@ class ConsoleCommandSender implements CommandSender{
 		return $this->lineHeight ?? PHP_INT_MAX;
 	}
 
-	public function setScreenLineHeight(int $height = null){
+	public function setScreenLineHeight(?int $height){
 		if($height !== null and $height < 1){
 			throw new \InvalidArgumentException("Line height must be at least 1");
 		}

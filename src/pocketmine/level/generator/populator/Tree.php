@@ -24,7 +24,7 @@ declare(strict_types=1);
 namespace pocketmine\level\generator\populator;
 
 use pocketmine\block\Block;
-use pocketmine\block\Sapling;
+use pocketmine\block\utils\TreeType;
 use pocketmine\level\ChunkManager;
 use pocketmine\level\generator\object\Tree as ObjectTree;
 use pocketmine\utils\Random;
@@ -35,10 +35,14 @@ class Tree extends Populator{
 	private $randomAmount;
 	private $baseAmount;
 
+	/** @var TreeType */
 	private $type;
 
-	public function __construct(int $type = Sapling::OAK){
-		$this->type = $type;
+	/**
+	 * @param TreeType|null $type default oak
+	 */
+	public function __construct(?TreeType $type = null){
+		$this->type = $type ?? TreeType::OAK();
 	}
 
 	public function setRandomAmount(int $amount) : void{
@@ -65,7 +69,7 @@ class Tree extends Populator{
 
 	private function getHighestWorkableBlock(int $x, int $z) : int{
 		for($y = 127; $y > 0; --$y){
-			$b = $this->level->getBlockIdAt($x, $y, $z);
+			$b = $this->level->getBlockAt($x, $y, $z)->getId();
 			if($b === Block::DIRT or $b === Block::GRASS){
 				break;
 			}elseif($b !== Block::AIR and $b !== Block::SNOW_LAYER){

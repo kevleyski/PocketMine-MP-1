@@ -26,8 +26,9 @@ namespace pocketmine\network\mcpe\protocol;
 #include <rules/DataPacket.h>
 
 use pocketmine\network\mcpe\handler\SessionHandler;
+use pocketmine\utils\BinaryDataException;
 
-class MoveEntityDeltaPacket extends DataPacket{
+class MoveEntityDeltaPacket extends DataPacket implements ClientboundPacket{
 	public const NETWORK_ID = ProtocolInfo::MOVE_ENTITY_DELTA_PACKET;
 
 	public const FLAG_HAS_X = 0x01;
@@ -37,6 +38,8 @@ class MoveEntityDeltaPacket extends DataPacket{
 	public const FLAG_HAS_ROT_Y = 0x10;
 	public const FLAG_HAS_ROT_Z = 0x20;
 
+	/** @var int */
+	public $entityRuntimeId;
 	/** @var int */
 	public $flags;
 	/** @var int */
@@ -52,6 +55,12 @@ class MoveEntityDeltaPacket extends DataPacket{
 	/** @var float */
 	public $zRot = 0.0;
 
+	/**
+	 * @param int $flag
+	 *
+	 * @return int
+	 * @throws BinaryDataException
+	 */
 	private function maybeReadCoord(int $flag) : int{
 		if($this->flags & $flag){
 			return $this->getVarInt();
@@ -59,6 +68,12 @@ class MoveEntityDeltaPacket extends DataPacket{
 		return 0;
 	}
 
+	/**
+	 * @param int $flag
+	 *
+	 * @return float
+	 * @throws BinaryDataException
+	 */
 	private function maybeReadRotation(int $flag) : float{
 		if($this->flags & $flag){
 			return $this->getByteRotation();
@@ -67,6 +82,7 @@ class MoveEntityDeltaPacket extends DataPacket{
 	}
 
 	protected function decodePayload() : void{
+		$this->entityRuntimeId = $this->getEntityRuntimeId();
 		$this->flags = $this->getByte();
 		$this->xDiff = $this->maybeReadCoord(self::FLAG_HAS_X);
 		$this->yDiff = $this->maybeReadCoord(self::FLAG_HAS_Y);
@@ -89,6 +105,7 @@ class MoveEntityDeltaPacket extends DataPacket{
 	}
 
 	protected function encodePayload() : void{
+		$this->putEntityRuntimeId($this->entityRuntimeId);
 		$this->putByte($this->flags);
 		$this->maybeWriteCoord(self::FLAG_HAS_X, $this->xDiff);
 		$this->maybeWriteCoord(self::FLAG_HAS_Y, $this->yDiff);

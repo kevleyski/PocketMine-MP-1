@@ -26,12 +26,16 @@ namespace pocketmine\inventory;
 use pocketmine\event\inventory\InventoryOpenEvent;
 use pocketmine\item\Item;
 use pocketmine\item\ItemFactory;
-use pocketmine\level\Level;
-use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\protocol\InventoryContentPacket;
 use pocketmine\network\mcpe\protocol\InventorySlotPacket;
 use pocketmine\network\mcpe\protocol\types\ContainerIds;
 use pocketmine\Player;
+use pocketmine\utils\Utils;
+use function array_slice;
+use function count;
+use function max;
+use function min;
+use function spl_object_id;
 
 abstract class BaseInventory implements Inventory{
 
@@ -45,15 +49,15 @@ abstract class BaseInventory implements Inventory{
 	protected $slots = [];
 	/** @var Player[] */
 	protected $viewers = [];
-	/** @var InventoryEventProcessor */
-	protected $eventProcessor;
+	/** @var \Closure */
+	protected $slotChangeListener;
 
 	/**
 	 * @param Item[] $items
 	 * @param int    $size
 	 * @param string $title
 	 */
-	public function __construct(array $items = [], int $size = null, string $title = null){
+	public function __construct(array $items = [], ?int $size = null, ?string $title = null){
 		$this->slots = new \SplFixedArray($size ?? $this->getDefaultSize());
 		$this->title = $title ?? $this->getName();
 
@@ -91,7 +95,7 @@ abstract class BaseInventory implements Inventory{
 	}
 
 	public function getItem(int $index) : Item{
-		return $this->slots[$index] !== null ? clone $this->slots[$index] : ItemFactory::get(Item::AIR, 0, 0);
+		return $this->slots[$index] !== null ? clone $this->slots[$index] : ItemFactory::air();
 	}
 
 	/**
@@ -101,13 +105,12 @@ abstract class BaseInventory implements Inventory{
 	 */
 	public function getContents(bool $includeEmpty = false) : array{
 		$contents = [];
-		$air = null;
 
 		foreach($this->slots as $i => $slot){
 			if($slot !== null){
 				$contents[$i] = clone $slot;
 			}elseif($includeEmpty){
-				$contents[$i] = $air ?? ($air = ItemFactory::get(Item::AIR, 0, 0));
+				$contents[$i] = ItemFactory::air();
 			}
 		}
 
@@ -140,31 +143,16 @@ abstract class BaseInventory implements Inventory{
 		}
 	}
 
-	/**
-	 * Drops the contents of the inventory into the specified Level at the specified position and clears the inventory
-	 * contents.
-	 *
-	 * @param Level   $level
-	 * @param Vector3 $position
-	 */
-	public function dropContents(Level $level, Vector3 $position) : void{
-		foreach($this->getContents() as $item){
-			$level->dropItem($position, $item);
-		}
-
-		$this->clearAll();
-	}
-
 	public function setItem(int $index, Item $item, bool $send = true) : bool{
 		if($item->isNull()){
-			$item = ItemFactory::get(Item::AIR, 0, 0);
+			$item = ItemFactory::air();
 		}else{
 			$item = clone $item;
 		}
 
 		$oldItem = $this->getItem($index);
-		if($this->eventProcessor !== null){
-			$newItem = $this->eventProcessor->onSlotChange($this, $index, $oldItem, $item);
+		if($this->slotChangeListener !== null){
+			$newItem = ($this->slotChangeListener)($this, $index, $oldItem, $item);
 			if($newItem === null){
 				return false;
 			}
@@ -181,7 +169,7 @@ abstract class BaseInventory implements Inventory{
 	public function contains(Item $item) : bool{
 		$count = max(1, $item->getCount());
 		$checkDamage = !$item->hasAnyDamageValue();
-		$checkTags = $item->hasCompoundTag();
+		$checkTags = $item->hasNamedTag();
 		foreach($this->getContents() as $i){
 			if($item->equals($i, $checkDamage, $checkTags)){
 				$count -= $i->getCount();
@@ -197,7 +185,7 @@ abstract class BaseInventory implements Inventory{
 	public function all(Item $item) : array{
 		$slots = [];
 		$checkDamage = !$item->hasAnyDamageValue();
-		$checkTags = $item->hasCompoundTag();
+		$checkTags = $item->hasNamedTag();
 		foreach($this->getContents() as $index => $i){
 			if($item->equals($i, $checkDamage, $checkTags)){
 				$slots[$index] = $i;
@@ -209,7 +197,7 @@ abstract class BaseInventory implements Inventory{
 
 	public function remove(Item $item) : void{
 		$checkDamage = !$item->hasAnyDamageValue();
-		$checkTags = $item->hasCompoundTag();
+		$checkTags = $item->hasNamedTag();
 
 		foreach($this->getContents() as $index => $i){
 			if($item->equals($i, $checkDamage, $checkTags)){
@@ -221,7 +209,7 @@ abstract class BaseInventory implements Inventory{
 	public function first(Item $item, bool $exact = false) : int{
 		$count = $exact ? $item->getCount() : max(1, $item->getCount());
 		$checkDamage = $exact || !$item->hasAnyDamageValue();
-		$checkTags = $exact || $item->hasCompoundTag();
+		$checkTags = $exact || $item->hasNamedTag();
 
 		foreach($this->getContents() as $index => $i){
 			if($item->equals($i, $checkDamage, $checkTags) and ($i->getCount() === $count or (!$exact and $i->getCount() > $count))){
@@ -249,7 +237,7 @@ abstract class BaseInventory implements Inventory{
 	public function canAddItem(Item $item) : bool{
 		$item = clone $item;
 		$checkDamage = !$item->hasAnyDamageValue();
-		$checkTags = $item->hasCompoundTag();
+		$checkTags = $item->hasNamedTag();
 		for($i = 0, $size = $this->getSize(); $i < $size; ++$i){
 			$slot = $this->getItem($i);
 			if($item->equals($slot, $checkDamage, $checkTags)){
@@ -342,7 +330,7 @@ abstract class BaseInventory implements Inventory{
 			}
 
 			foreach($itemSlots as $index => $slot){
-				if($slot->equals($item, !$slot->hasAnyDamageValue(), $slot->hasCompoundTag())){
+				if($slot->equals($item, !$slot->hasAnyDamageValue(), $slot->hasNamedTag())){
 					$amount = min($item->getCount(), $slot->getCount());
 					$slot->setCount($slot->getCount() - $amount);
 					$item->setCount($item->getCount() - $amount);
@@ -362,7 +350,7 @@ abstract class BaseInventory implements Inventory{
 	}
 
 	public function clear(int $index, bool $send = true) : bool{
-		return $this->setItem($index, ItemFactory::get(Item::AIR, 0, 0), $send);
+		return $this->setItem($index, ItemFactory::air(), $send);
 	}
 
 	public function clearAll(bool $send = true) : void{
@@ -384,6 +372,7 @@ abstract class BaseInventory implements Inventory{
 
 	/**
 	 * Removes the inventory window from all players currently viewing it.
+	 *
 	 * @param bool $force Force removal of permanent windows such as the player's own inventory. Used internally.
 	 */
 	public function removeAllViewers(bool $force = false) : void{
@@ -398,7 +387,8 @@ abstract class BaseInventory implements Inventory{
 	}
 
 	public function open(Player $who) : bool{
-		$who->getServer()->getPluginManager()->callEvent($ev = new InventoryOpenEvent($this, $who));
+		$ev = new InventoryOpenEvent($this, $who);
+		$ev->call();
 		if($ev->isCancelled()){
 			return false;
 		}
@@ -412,11 +402,11 @@ abstract class BaseInventory implements Inventory{
 	}
 
 	public function onOpen(Player $who) : void{
-		$this->viewers[spl_object_hash($who)] = $who;
+		$this->viewers[spl_object_id($who)] = $who;
 	}
 
 	public function onClose(Player $who) : void{
-		unset($this->viewers[spl_object_hash($who)]);
+		unset($this->viewers[spl_object_id($who)]);
 	}
 
 	public function onSlotChange(int $index, Item $before, bool $send) : void{
@@ -474,11 +464,14 @@ abstract class BaseInventory implements Inventory{
 		return $slot >= 0 and $slot < $this->slots->getSize();
 	}
 
-	public function getEventProcessor() : ?InventoryEventProcessor{
-		return $this->eventProcessor;
+	public function getSlotChangeListener() : ?\Closure{
+		return $this->slotChangeListener;
 	}
 
-	public function setEventProcessor(?InventoryEventProcessor $eventProcessor) : void{
-		$this->eventProcessor = $eventProcessor;
+	public function setSlotChangeListener(?\Closure $eventProcessor) : void{
+		if($eventProcessor !== null){
+			Utils::validateCallableSignature(function(Inventory $inventory, int $slot, Item $oldItem, Item $newItem) : ?Item{}, $eventProcessor);
+		}
+		$this->slotChangeListener = $eventProcessor;
 	}
 }

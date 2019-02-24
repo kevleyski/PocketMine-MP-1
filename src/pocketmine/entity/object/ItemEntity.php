@@ -32,6 +32,7 @@ use pocketmine\nbt\tag\CompoundTag;
 use pocketmine\network\mcpe\protocol\AddItemEntityPacket;
 use pocketmine\network\mcpe\protocol\TakeItemEntityPacket;
 use pocketmine\Player;
+use function get_class;
 
 class ItemEntity extends Entity{
 	public const NETWORK_ID = self::ITEM;
@@ -54,6 +55,9 @@ class ItemEntity extends Entity{
 
 	public $canCollide = false;
 
+	/** @var int */
+	protected $age = 0;
+
 	protected function initEntity(CompoundTag $nbt) : void{
 		parent::initEntity($nbt);
 
@@ -71,28 +75,31 @@ class ItemEntity extends Entity{
 		}
 
 		$this->item = Item::nbtDeserialize($itemTag);
+		if($this->item->isNull()){
+			throw new \UnexpectedValueException("Item for " . get_class($this) . " is invalid");
+		}
 
 
-		$this->server->getPluginManager()->callEvent(new ItemSpawnEvent($this));
+		(new ItemSpawnEvent($this))->call();
 	}
 
-	public function entityBaseTick(int $tickDiff = 1) : bool{
+	protected function entityBaseTick(int $tickDiff = 1) : bool{
 		if($this->closed){
 			return false;
 		}
 
 		$hasUpdate = parent::entityBaseTick($tickDiff);
 
-		if(!$this->isFlaggedForDespawn()){
-			if($this->pickupDelay > 0 and $this->pickupDelay < 32767){ //Infinite delay
-				$this->pickupDelay -= $tickDiff;
-				if($this->pickupDelay < 0){
-					$this->pickupDelay = 0;
-				}
+		if(!$this->isFlaggedForDespawn() and $this->pickupDelay > -1 and $this->pickupDelay < 32767){ //Infinite delay
+			$this->pickupDelay -= $tickDiff;
+			if($this->pickupDelay < 0){
+				$this->pickupDelay = 0;
 			}
 
+			$this->age += $tickDiff;
 			if($this->age > 6000){
-				$this->server->getPluginManager()->callEvent($ev = new ItemDespawnEvent($this));
+				$ev = new ItemDespawnEvent($this);
+				$ev->call();
 				if($ev->isCancelled()){
 					$this->age = 0;
 				}else{
@@ -100,7 +107,6 @@ class ItemEntity extends Entity{
 					$hasUpdate = true;
 				}
 			}
-
 		}
 
 		return $hasUpdate;
@@ -207,11 +213,12 @@ class ItemEntity extends Entity{
 		$item = $this->getItem();
 		$playerInventory = $player->getInventory();
 
-		if(!($item instanceof Item) or ($player->isSurvival() and !$playerInventory->canAddItem($item))){
+		if($player->isSurvival() and !$playerInventory->canAddItem($item)){
 			return;
 		}
 
-		$this->server->getPluginManager()->callEvent($ev = new InventoryPickupItemEvent($playerInventory, $this));
+		$ev = new InventoryPickupItemEvent($playerInventory, $this);
+		$ev->call();
 		if($ev->isCancelled()){
 			return;
 		}

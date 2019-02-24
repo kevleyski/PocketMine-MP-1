@@ -35,17 +35,17 @@ class BlockTest extends TestCase{
 	 * Test registering a block which would overwrite another block, without forcing it
 	 */
 	public function testAccidentalOverrideBlock() : void{
-		$block = new MyCustomBlock();
-		$this->expectException(\RuntimeException::class);
-		BlockFactory::registerBlock($block);
+		$block = new MyCustomBlock(new BlockIdentifier(Block::COBBLESTONE), "Cobblestone");
+		$this->expectException(\InvalidArgumentException::class);
+		BlockFactory::register($block);
 	}
 
 	/**
 	 * Test registering a block deliberately overwriting another block works as expected
 	 */
 	public function testDeliberateOverrideBlock() : void{
-		$block = new MyCustomBlock();
-		BlockFactory::registerBlock($block, true);
+		$block = new MyCustomBlock(new BlockIdentifier(Block::COBBLESTONE), "Cobblestone");
+		BlockFactory::register($block, true);
 		self::assertInstanceOf(MyCustomBlock::class, BlockFactory::get($block->getId()));
 	}
 
@@ -55,8 +55,8 @@ class BlockTest extends TestCase{
 	public function testRegisterNewBlock() : void{
 		for($i = 0; $i < 256; ++$i){
 			if(!BlockFactory::isRegistered($i)){
-				$b = new StrangeNewBlock($i);
-				BlockFactory::registerBlock($b);
+				$b = new StrangeNewBlock(new BlockIdentifier($i), "Strange New Block");
+				BlockFactory::register($b);
 				self::assertInstanceOf(StrangeNewBlock::class, BlockFactory::get($b->getId()));
 				return;
 			}
@@ -70,7 +70,7 @@ class BlockTest extends TestCase{
 	 */
 	public function testRegisterIdTooLarge() : void{
 		self::expectException(\RuntimeException::class);
-		BlockFactory::registerBlock(new OutOfBoundsBlock(25555));
+		BlockFactory::register(new OutOfBoundsBlock(new BlockIdentifier(25555), "Out Of Bounds Block"));
 	}
 
 	/**
@@ -78,7 +78,7 @@ class BlockTest extends TestCase{
 	 */
 	public function testRegisterIdTooSmall() : void{
 		self::expectException(\RuntimeException::class);
-		BlockFactory::registerBlock(new OutOfBoundsBlock(-1));
+		BlockFactory::register(new OutOfBoundsBlock(new BlockIdentifier(-1), "Out Of Bounds Block"));
 	}
 
 	/**
@@ -99,11 +99,12 @@ class BlockTest extends TestCase{
 	 */
 	public function blockGetProvider() : array{
 		return [
-			[Block::STONE, Stone::ANDESITE],
+			[Block::STONE, 5],
 			[Block::STONE, 15],
-			[Block::GOLD_BLOCK, 5],
-			[Block::WOODEN_PLANKS, Planks::DARK_OAK],
-			[Block::SAND, 0]
+			[Block::GOLD_BLOCK, 0],
+			[Block::WOODEN_PLANKS, 5],
+			[Block::SAND, 0],
+			[Block::GOLD_BLOCK, 0]
 		];
 	}
 
@@ -119,13 +120,10 @@ class BlockTest extends TestCase{
 		self::assertEquals($meta, $block->getDamage());
 	}
 
-	/**
-	 * Test that all blocks have correctly set names
-	 */
-	public function testBlockNames() : void{
-		for($id = 0; $id < 256; ++$id){
-			$b = BlockFactory::get($id);
-			self::assertTrue($b instanceof UnknownBlock or $b->getName() !== "Unknown", "Block with ID $id does not have a valid name");
+	public function testBlockIds() : void{
+		for($i = 0; $i < 256; ++$i){
+			$b = BlockFactory::get($i);
+			self::assertContains($i, $b->getIdInfo()->getAllBlockIds());
 		}
 	}
 

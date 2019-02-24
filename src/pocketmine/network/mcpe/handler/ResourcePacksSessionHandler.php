@@ -33,6 +33,10 @@ use pocketmine\network\mcpe\protocol\ResourcePackStackPacket;
 use pocketmine\Player;
 use pocketmine\resourcepacks\ResourcePack;
 use pocketmine\resourcepacks\ResourcePackManager;
+use function ceil;
+use function implode;
+use function strpos;
+use function substr;
 
 /**
  * Handler used for the resource packs sequence phase of the session. This handler takes care of downloading resource
@@ -77,7 +81,7 @@ class ResourcePacksSessionHandler extends SessionHandler{
 				break;
 			case ResourcePackClientResponsePacket::STATUS_SEND_PACKS:
 				foreach($packet->packIds as $uuid){
-					$pack = $this->resourcePackManager->getPackById($uuid);
+					$pack = $this->resourcePackManager->getPackById(substr($uuid, 0, strpos($uuid, "_")));
 					if(!($pack instanceof ResourcePack)){
 						//Client requested a resource pack but we don't have it available on the server
 						$this->disconnectWithError("Unknown pack $uuid requested, available packs: " . implode(", ", $this->resourcePackManager->getPackIdList()));

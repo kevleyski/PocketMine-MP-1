@@ -30,18 +30,15 @@ use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\handler\SessionHandler;
 use pocketmine\network\mcpe\protocol\types\EntityLink;
 use pocketmine\utils\UUID;
+use function count;
 
-class AddPlayerPacket extends DataPacket{
+class AddPlayerPacket extends DataPacket implements ClientboundPacket{
 	public const NETWORK_ID = ProtocolInfo::ADD_PLAYER_PACKET;
 
 	/** @var UUID */
 	public $uuid;
 	/** @var string */
 	public $username;
-	/** @var string */
-	public $thirdPartyName = "";
-	/** @var int */
-	public $platform = 0;
 	/** @var int|null */
 	public $entityUniqueId = null; //TODO
 	/** @var int */
@@ -75,11 +72,12 @@ class AddPlayerPacket extends DataPacket{
 	/** @var EntityLink[] */
 	public $links = [];
 
+	/** @var string */
+	public $deviceId = ""; //TODO: fill player's device ID (???)
+
 	protected function decodePayload() : void{
 		$this->uuid = $this->getUUID();
 		$this->username = $this->getString();
-		$this->thirdPartyName = $this->getString();
-		$this->platform = $this->getVarInt();
 		$this->entityUniqueId = $this->getEntityUniqueId();
 		$this->entityRuntimeId = $this->getEntityRuntimeId();
 		$this->platformChatId = $this->getString();
@@ -103,13 +101,13 @@ class AddPlayerPacket extends DataPacket{
 		for($i = 0; $i < $linkCount; ++$i){
 			$this->links[$i] = $this->getEntityLink();
 		}
+
+		$this->deviceId = $this->getString();
 	}
 
 	protected function encodePayload() : void{
 		$this->putUUID($this->uuid);
 		$this->putString($this->username);
-		$this->putString($this->thirdPartyName);
-		$this->putVarInt($this->platform);
 		$this->putEntityUniqueId($this->entityUniqueId ?? $this->entityRuntimeId);
 		$this->putEntityRuntimeId($this->entityRuntimeId);
 		$this->putString($this->platformChatId);
@@ -133,6 +131,8 @@ class AddPlayerPacket extends DataPacket{
 		foreach($this->links as $link){
 			$this->putEntityLink($link);
 		}
+
+		$this->putString($this->deviceId);
 	}
 
 	public function handle(SessionHandler $handler) : bool{

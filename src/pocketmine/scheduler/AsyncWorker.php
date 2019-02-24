@@ -24,8 +24,10 @@ declare(strict_types=1);
 namespace pocketmine\scheduler;
 
 use pocketmine\utils\MainLogger;
-use pocketmine\utils\Utils;
 use pocketmine\Worker;
+use function error_reporting;
+use function gc_enable;
+use function ini_set;
 
 class AsyncWorker extends Worker{
 	/** @var mixed[] */
@@ -49,8 +51,9 @@ class AsyncWorker extends Worker{
 		$this->registerClassLoader();
 
 		//set this after the autoloader is registered
-		set_error_handler([Utils::class, 'errorExceptionHandler']);
+		\ErrorUtils::setErrorExceptionHandler();
 
+		\GlobalLogger::set($this->logger);
 		if($this->logger instanceof MainLogger){
 			$this->logger->registerStatic();
 		}
@@ -90,6 +93,9 @@ class AsyncWorker extends Worker{
 	 * @param mixed  $value
 	 */
 	public function saveToThreadStore(string $identifier, $value) : void{
+		if(\Thread::getCurrentThread() !== $this){
+			throw new \InvalidStateException("Thread-local data can only be stored in the thread context");
+		}
 		self::$store[$identifier] = $value;
 	}
 
@@ -102,9 +108,13 @@ class AsyncWorker extends Worker{
 	 * Objects stored in this storage may ONLY be retrieved while the task is running.
 	 *
 	 * @param string $identifier
+	 *
 	 * @return mixed
 	 */
 	public function getFromThreadStore(string $identifier){
+		if(\Thread::getCurrentThread() !== $this){
+			throw new \InvalidStateException("Thread-local data can only be fetched in the thread context");
+		}
 		return self::$store[$identifier] ?? null;
 	}
 
@@ -114,6 +124,9 @@ class AsyncWorker extends Worker{
 	 * @param string $identifier
 	 */
 	public function removeFromThreadStore(string $identifier) : void{
+		if(\Thread::getCurrentThread() !== $this){
+			throw new \InvalidStateException("Thread-local data can only be removed in the thread context");
+		}
 		unset(self::$store[$identifier]);
 	}
 }

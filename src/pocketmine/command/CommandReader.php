@@ -25,6 +25,23 @@ namespace pocketmine\command;
 
 use pocketmine\snooze\SleeperNotifier;
 use pocketmine\Thread;
+use pocketmine\utils\Utils;
+use function extension_loaded;
+use function fclose;
+use function fgets;
+use function fopen;
+use function fstat;
+use function getopt;
+use function is_resource;
+use function microtime;
+use function preg_replace;
+use function readline;
+use function readline_add_history;
+use function stream_isatty;
+use function stream_select;
+use function trim;
+use function usleep;
+use const STDIN;
 
 class CommandReader extends Thread{
 
@@ -47,9 +64,9 @@ class CommandReader extends Thread{
 		$this->buffer = new \Threaded;
 		$this->notifier = $notifier;
 
-		$opts = getopt("", ["disable-readline"]);
+		$opts = getopt("", ["disable-readline", "enable-readline"]);
 
-		if(extension_loaded("readline") and !isset($opts["disable-readline"]) and !$this->isPipe(STDIN)){
+		if(extension_loaded("readline") and (Utils::getOS() === "win" ? isset($opts["enable-readline"]) : !isset($opts["disable-readline"])) and !$this->isPipe(STDIN)){
 			$this->type = self::TYPE_READLINE;
 		}
 	}
@@ -94,6 +111,7 @@ class CommandReader extends Thread{
 	 * Checks if the specified stream is a FIFO pipe.
 	 *
 	 * @param resource $stream
+	 *
 	 * @return bool
 	 */
 	private function isPipe($stream) : bool{

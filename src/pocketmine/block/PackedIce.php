@@ -25,16 +25,6 @@ namespace pocketmine\block;
 
 class PackedIce extends Solid{
 
-	protected $id = self::PACKED_ICE;
-
-	public function __construct(int $meta = 0){
-		$this->meta = $meta;
-	}
-
-	public function getName() : string{
-		return "Packed Ice";
-	}
-
 	public function getHardness() : float{
 		return 0.5;
 	}

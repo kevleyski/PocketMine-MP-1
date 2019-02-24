@@ -147,17 +147,23 @@ namespace pocketmine {
 		define('pocketmine\PATH', dirname(__FILE__, 3) . DIRECTORY_SEPARATOR);
 	}
 
-	define('pocketmine\COMPOSER_AUTOLOADER_PATH', \pocketmine\PATH . 'vendor/autoload.php');
+	$opts = getopt("", ["bootstrap:"]);
+	if(isset($opts["bootstrap"])){
+		$bootstrap = realpath($opts["bootstrap"]) ?: $opts["bootstrap"];
+	}else{
+		$bootstrap = \pocketmine\PATH . 'vendor/autoload.php';
+	}
+	define('pocketmine\COMPOSER_AUTOLOADER_PATH', $bootstrap);
 
-	if(is_file(\pocketmine\COMPOSER_AUTOLOADER_PATH)){
+	if(\pocketmine\COMPOSER_AUTOLOADER_PATH !== false and is_file(\pocketmine\COMPOSER_AUTOLOADER_PATH)){
 		require_once(\pocketmine\COMPOSER_AUTOLOADER_PATH);
 	}else{
-		critical_error("Composer autoloader not found.");
+		critical_error("Composer autoloader not found at " . $bootstrap);
 		critical_error("Please install/update Composer dependencies or use provided builds.");
 		exit(1);
 	}
 
-	set_error_handler([Utils::class, 'errorExceptionHandler']);
+	\ErrorUtils::setErrorExceptionHandler();
 
 	/*
 	 * We now use the Composer autoloader, but this autoloader is still for loading plugins.
@@ -173,11 +179,10 @@ namespace pocketmine {
 	ini_set("default_charset", "utf-8");
 
 	ini_set("memory_limit", '-1');
-	define('pocketmine\START_TIME', microtime(true));
 
-	define('pocketmine\RESOURCE_PATH', \pocketmine\PATH . 'src' . DIRECTORY_SEPARATOR . 'pocketmine' . DIRECTORY_SEPARATOR . 'resources' . DIRECTORY_SEPARATOR);
+	define('pocketmine\RESOURCE_PATH', \pocketmine\PATH . 'resources' . DIRECTORY_SEPARATOR);
 
-	$opts = getopt("", ["data:", "plugins:", "no-wizard"]);
+	$opts = getopt("", ["data:", "plugins:", "no-wizard", "enable-ansi", "disable-ansi"]);
 
 	define('pocketmine\DATA', isset($opts["data"]) ? $opts["data"] . DIRECTORY_SEPARATOR : realpath(getcwd()) . DIRECTORY_SEPARATOR);
 	define('pocketmine\PLUGIN_PATH', isset($opts["plugins"]) ? $opts["plugins"] . DIRECTORY_SEPARATOR : realpath(getcwd()) . DIRECTORY_SEPARATOR . "plugins" . DIRECTORY_SEPARATOR);
@@ -187,15 +192,19 @@ namespace pocketmine {
 	}
 
 	//Logger has a dependency on timezone
-	$tzError = Timezone::init();
+	Timezone::init();
+
+	if(isset($opts["enable-ansi"])){
+		Terminal::init(true);
+	}elseif(isset($opts["disable-ansi"])){
+		Terminal::init(false);
+	}else{
+		Terminal::init();
+	}
 
 	$logger = new MainLogger(\pocketmine\DATA . "server.log");
 	$logger->registerStatic();
-
-	foreach($tzError as $e){
-		$logger->warning($e);
-	}
-	unset($tzError);
+	\GlobalLogger::set($logger);
 
 	if(extension_loaded("xdebug")){
 		$logger->warning(PHP_EOL . PHP_EOL . PHP_EOL . "\tYou are running " . \pocketmine\NAME . " with xdebug enabled. This has a major impact on performance." . PHP_EOL . PHP_EOL);
@@ -241,6 +250,8 @@ namespace pocketmine {
 			}
 		}
 
+		//TODO: move this to a Server field
+		define('pocketmine\START_TIME', microtime(true));
 		ThreadManager::init();
 		new Server($autoloader, $logger, \pocketmine\DATA, \pocketmine\PLUGIN_PATH);
 

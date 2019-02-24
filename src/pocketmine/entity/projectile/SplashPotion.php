@@ -25,16 +25,19 @@ namespace pocketmine\entity\projectile;
 
 use pocketmine\block\Block;
 use pocketmine\block\BlockFactory;
-use pocketmine\entity\EffectInstance;
+use pocketmine\entity\effect\EffectInstance;
+use pocketmine\entity\effect\InstantEffect;
 use pocketmine\entity\Living;
-use pocketmine\event\entity\ProjectileHitEntityEvent;
 use pocketmine\event\entity\ProjectileHitBlockEvent;
+use pocketmine\event\entity\ProjectileHitEntityEvent;
 use pocketmine\event\entity\ProjectileHitEvent;
 use pocketmine\item\Potion;
 use pocketmine\nbt\tag\CompoundTag;
 use pocketmine\network\mcpe\protocol\LevelEventPacket;
 use pocketmine\network\mcpe\protocol\LevelSoundEventPacket;
 use pocketmine\utils\Color;
+use function round;
+use function sqrt;
 
 class SplashPotion extends Throwable{
 
@@ -86,7 +89,7 @@ class SplashPotion extends Throwable{
 			if(!$this->willLinger()){
 				foreach($this->level->getNearbyEntities($this->boundingBox->expandedCopy(4.125, 2.125, 4.125), $this) as $entity){
 					if($entity instanceof Living and $entity->isAlive()){
-						$distanceSquared = $entity->distanceSquared($this);
+						$distanceSquared = $entity->add(0, $entity->getEyeHeight(), 0)->distanceSquared($this);
 						if($distanceSquared > 16){ //4 blocks
 							continue;
 						}
@@ -99,7 +102,7 @@ class SplashPotion extends Throwable{
 						foreach($this->getPotionEffects() as $effect){
 							//getPotionEffects() is used to get COPIES to avoid accidentally modifying the same effect instance already applied to another entity
 
-							if(!$effect->getType()->isInstantEffect()){
+							if(!($effect->getType() instanceof InstantEffect)){
 								$newDuration = (int) round($effect->getDuration() * 0.75 * $distanceMultiplier);
 								if($newDuration < 20){
 									continue;
@@ -107,7 +110,7 @@ class SplashPotion extends Throwable{
 								$effect->setDuration($newDuration);
 								$entity->addEffect($effect);
 							}else{
-								$effect->getType()->applyEffect($entity, $effect, $distanceMultiplier, $this, $this->getOwningEntity());
+								$effect->getType()->applyEffect($entity, $effect, $distanceMultiplier, $this);
 							}
 						}
 					}
@@ -127,8 +130,6 @@ class SplashPotion extends Throwable{
 				}
 			}
 		}
-
-		$this->flagForDespawn();
 	}
 
 	/**
@@ -156,6 +157,7 @@ class SplashPotion extends Throwable{
 
 	/**
 	 * Sets whether this splash potion will create an area-effect-cloud when it lands.
+	 *
 	 * @param bool $value
 	 */
 	public function setLinger(bool $value = true) : void{
